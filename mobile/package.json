@@ -7,9 +7,15 @@
     "dev:app": "uni -p app",
     "dev:app-ios": "uni -p ios",
     "dev:app-android": "uni -p android",
+    "dev:h5": "uni",
+    "dev:mp-weixin": "uni -p mp-weixin",
+    "dev:mp-alipay": "uni -p mp-alipay",
     "build:app": "uni build -p app",
     "build:app-ios": "uni build -p ios",
     "build:app-android": "uni build -p android",
+    "build:h5": "uni build",
+    "build:mp-weixin": "uni build -p mp-weixin",
+    "build:mp-alipay": "uni build -p mp-alipay",
     "lint": "eslint --ext .js,.vue src"
   },
   "dependencies": {

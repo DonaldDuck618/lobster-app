@@ -63,14 +63,54 @@
   },
   "quickapp": {},
   "mp-weixin": {
-    "appid": "",
+    "appid": "wx____________",
     "setting": {
-      "urlCheck": false,
+      "urlCheck": true,
       "es6": true,
       "minified": true,
-      "newFeature": true
+      "newFeature": true,
+      "autoAudits": false,
+      "coverView": true,
+      "showShadowRootInWxml": false,
+      "scopeDataCheck": false,
+      "compileHotReLoad": false,
+      "lazyloadPlaceholderEnable": false,
+      "preloadBackgroundData": false,
+      "uglifyFileName": true,
+      "uploadWithSourceMap": false,
+      "useMultiFrameRuntime": true,
+      "useApiHook": true,
+      "useApiHostProcess": true,
+      "bundle": false,
+      "useIsolateContext": true,
+      "userConfirmedBundleSwitch": false,
+      "packNpmManually": false,
+      "packNpmRelationList": [],
+      "minifyWXSS": true,
+      "showES6CompileOption": false,
+      "minifyWXML": true,
+      "babelSetting": {
+        "ignore": [],
+        "disablePlugins": [],
+        "outputPath": ""
+      }
     },
-    "usingComponents": true
+    "usingComponents": true,
+    "permission": {
+      "scope.userLocation": {
+        "desc": "你的位置信息将用于提供更好的本地化服务"
+      }
+    },
+    "requiredPrivateInfos": [
+      "chooseLocation",
+      "getLocation"
+    ],
+    "plugins": {},
+    "resizable": true,
+    "optimization": {
+      "subPackages": true,
+      "cacheTag": true
+    }
   },
   "mp-alipay": {
     "usingComponents": true

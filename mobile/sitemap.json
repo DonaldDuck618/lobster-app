@@ -1,0 +1,9 @@
+{
+  "desc": "🦞 龙虾 Agent 小程序页面索引配置",
+  "rules": [
+    {
+      "action": "allow",
+      "page": "*"
+    }
+  ]
+}
