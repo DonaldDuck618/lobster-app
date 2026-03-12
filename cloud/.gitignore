@@ -1,45 +1,39 @@
-# 依赖
-node_modules/
-.pnp
-.pnp.js
-
-# 环境变量
+# 环境变量文件 (包含敏感信息)
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+!.env.development
+!.env.production.template
 
-# 日志
+# 日志文件
 logs/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
 # 上传文件
 uploads/
-temp/
 
-# 数据库
-*.sqlite
+# 数据库文件
 *.db
+*.sqlite
 
-# 操作系统
-.DS_Store
-Thumbs.db
+# 临时文件
+tmp/
+temp/
+*.tmp
 
-# IDE
-.vscode/*
-!.vscode/extensions.json
-.idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# 依赖
+node_modules/
 
 # 构建输出
 dist/
 build/
 
-# 测试覆盖
-coverage/
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
