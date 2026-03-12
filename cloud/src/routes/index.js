@@ -12,6 +12,7 @@ const fileRoutes = require('./files');
 const userRoutes = require('./users');
 const toolRoutes = require('./tools');
 const cronRoutes = require('./cron');
+const paymentRoutes = require('./payment');
 
 // 注册路由
 router.use('/auth', authRoutes);
@@ -20,6 +21,7 @@ router.use('/files', fileRoutes);
 router.use('/users', userRoutes);
 router.use('/tools', toolRoutes);
 router.use('/cron', cronRoutes);
+router.use('/payment', paymentRoutes);
 
 // API 文档
 router.get('/', (req, res) => {
@@ -32,7 +34,8 @@ router.get('/', (req, res) => {
       files: '/api/v1/files',
       users: '/api/v1/users',
       tools: '/api/v1/tools',
-      cron: '/api/v1/cron'
+      cron: '/api/v1/cron',
+      payment: '/api/v1/payment'
     },
     docs: 'https://github.com/DonaldDuck618/lobster-app'
   });
