@@ -1,0 +1,46 @@
+{
+  "name": "lobster-app-mobile",
+  "version": "1.0.0",
+  "description": "🦞 龙虾 Agent - 移动端 AI 助手 (iOS & Android)",
+  "main": "main.js",
+  "scripts": {
+    "dev:app": "uni -p app",
+    "dev:app-ios": "uni -p ios",
+    "dev:app-android": "uni -p android",
+    "build:app": "uni build -p app",
+    "build:app-ios": "uni build -p ios",
+    "build:app-android": "uni build -p android",
+    "lint": "eslint --ext .js,.vue src"
+  },
+  "dependencies": {
+    "@dcloudio/uni-app": "^3.0.0-4010520250520001",
+    "@dcloudio/uni-app-plus": "^3.0.0-4010520250520001",
+    "@dcloudio/uni-components": "^3.0.0-4010520250520001",
+    "@dcloudio/uni-h5": "^3.0.0-4010520250520001",
+    "pinia": "2.3.0",
+    "vue": "^3.4.21",
+    "uview-ui": "^2.0.36"
+  },
+  "devDependencies": {
+    "@dcloudio/types": "^3.4.8",
+    "@dcloudio/uni-automator": "^3.0.0-4010520250520001",
+    "@dcloudio/uni-cli-shared": "^3.0.0-4010520250520001",
+    "@dcloudio/vite-plugin-uni": "^3.0.0-4010520250520001",
+    "@vue/runtime-core": "^3.4.21",
+    "vite": "5.2.8"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DonaldDuck618/lobster-app.git"
+  },
+  "keywords": [
+    "lobster",
+    "ai",
+    "agent",
+    "ios",
+    "android",
+    "uniapp"
+  ],
+  "author": "Duck Donald <eric@lobster-app.com>",
+  "license": "MIT"
+}
