@@ -1,43 +1,112 @@
 /**
  * 认证路由
+ * 支持手机号、邮箱、微信登录
  */
 
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const AuthService = require('../services/auth');
+const SMSService = require('../services/sms');
 const logger = require('../utils/logger');
 
 /**
- * POST /api/v1/auth/register
- * 用户注册
+ * POST /api/v1/auth/send-code
+ * 发送验证码
  */
-router.post('/register', [
-  body('email').isEmail().normalizeEmail(),
-  body('password').isLength({ min: 6 }),
-  body('nickname').optional().trim()
+router.post('/send-code', [
+  body('phone').matches(/^1[3-9]\d{9}$/),
+  body('type').isIn(['register', 'login']).optional()
 ], async (req, res, next) => {
   try {
-    // 验证输入
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { email, password, nickname } = req.body;
+    const { phone, type = 'register' } = req.body;
 
-    // 创建用户
-    const user = await AuthService.register({ email, password, nickname });
+    // 发送验证码
+    const result = await SMSService.sendVerificationCode(phone, type);
 
-    logger.info('用户注册成功', { userId: user.id, email });
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * POST /api/v1/auth/register/phone
+ * 手机号注册
+ */
+router.post('/register/phone', [
+  body('phone').matches(/^1[3-9]\d{9}$/),
+  body('code').isLength({ min: 6, max: 6 }),
+  body('nickname').optional().trim(),
+  body('avatar').optional().isURL()
+], async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { phone, code, nickname, avatar } = req.body;
+
+    // 手机号注册
+    const user = await AuthService.registerByPhone({ phone, code, nickname, avatar });
+
+    logger.info('手机号注册成功', { userId: user.id, phone });
 
     res.status(201).json({
       success: true,
       data: {
         user: {
           id: user.id,
-          email: user.email,
-          nickname: user.nickname
+          phone: user.phone,
+          nickname: user.nickname,
+          avatar: user.avatar
+        },
+        token: user.token
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * POST /api/v1/auth/login/phone
+ * 手机号登录
+ */
+router.post('/login/phone', [
+  body('phone').matches(/^1[3-9]\d{9}$/),
+  body('code').isLength({ min: 6, max: 6 })
+], async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { phone, code } = req.body;
+
+    // 手机号登录
+    const user = await AuthService.loginByPhone({ phone, code });
+
+    logger.info('手机号登录成功', { userId: user.id, phone });
+
+    res.json({
+      success: true,
+      data: {
+        user: {
+          id: user.id,
+          phone: user.phone,
+          nickname: user.nickname,
+          avatar: user.avatar
         },
         token: user.token
       }
@@ -91,7 +160,9 @@ router.post('/login', [
  * 微信小程序登录
  */
 router.post('/wechat', [
-  body('code').notEmpty()
+  body('code').notEmpty(),
+  body('encryptedData').optional(),
+  body('iv').optional()
 ], async (req, res, next) => {
   try {
     const errors = validationResult(req);
@@ -99,10 +170,10 @@ router.post('/wechat', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { code } = req.body;
+    const { code, encryptedData, iv } = req.body;
 
     // 微信登录
-    const user = await AuthService.loginWithWechat(code);
+    const user = await AuthService.loginWithWechat(code, encryptedData, iv);
 
     logger.info('微信登录成功', { userId: user.id });
 
@@ -114,7 +185,8 @@ router.post('/wechat', [
           nickname: user.nickname,
           avatar: user.avatar
         },
-        token: user.token
+        token: user.token,
+        isNewUser: user.isNewUser
       }
     });
   } catch (error) {

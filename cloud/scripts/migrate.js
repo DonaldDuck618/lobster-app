@@ -17,14 +17,22 @@ async function runMigrations() {
     await query(`
       CREATE TABLE IF NOT EXISTS users (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        email VARCHAR(255) UNIQUE NOT NULL,
+        phone VARCHAR(20) UNIQUE,
+        email VARCHAR(255) UNIQUE,
         password_hash VARCHAR(255),
         nickname VARCHAR(100),
         avatar_url VARCHAR(500),
         wechat_openid VARCHAR(100),
-        phone VARCHAR(20),
+        wechat_session_key VARCHAR(255),
+        wechat_unionid VARCHAR(100),
+        phone_verified BOOLEAN DEFAULT FALSE,
+        email_verified BOOLEAN DEFAULT FALSE,
+        last_login_at TIMESTAMP,
+        last_login_ip VARCHAR(50),
+        status VARCHAR(20) DEFAULT 'active',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT users_phone_or_email CHECK (phone IS NOT NULL OR email IS NOT NULL)
       )
     `);
     logger.info('✅ 用户表创建成功');
