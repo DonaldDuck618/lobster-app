@@ -18,6 +18,14 @@
       }
     },
     {
+      "path": "pages/login/login",
+      "style": {
+        "navigationBarTitleText": "登录",
+        "navigationStyle": "custom",
+        "navigationBarHidden": true
+      }
+    },
+    {
       "path": "pages/templates/templates",
       "style": {
         "navigationBarTitleText": "模板库",
@@ -29,6 +37,22 @@
       "path": "pages/mine/mine",
       "style": {
         "navigationBarTitleText": "我的",
+        "navigationBarBackgroundColor": "#E74C3C",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/agreement/user",
+      "style": {
+        "navigationBarTitleText": "用户协议",
+        "navigationBarBackgroundColor": "#E74C3C",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/agreement/privacy",
+      "style": {
+        "navigationBarTitleText": "隐私政策",
         "navigationBarBackgroundColor": "#E74C3C",
         "navigationBarTextStyle": "white"
       }

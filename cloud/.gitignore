@@ -5,6 +5,12 @@
 !.env.development
 !.env.production.template
 
+# 敏感信息 (严禁提交)
+.credentials
+*.credentials
+secrets/
+keys/
+
 # 日志文件
 logs/
 *.log
