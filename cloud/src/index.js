@@ -19,6 +19,7 @@ const WebSocketServer = require('./services/websocket');
 const { initializeCronJobs } = require('./services/cron');
 const { initializeDatabase } = require('./models/database');
 const { initializeRedis } = require('./services/redis');
+const { clientMiddleware } = require('./middleware/client');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -29,6 +30,7 @@ app.use(cors()); // 跨域
 app.use(compression()); // 压缩
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(clientMiddleware); // 客户端识别
 
 // 日志中间件
 app.use((req, res, next) => {
