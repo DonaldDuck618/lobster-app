@@ -186,23 +186,62 @@ class LLMRouter {
    * 调用通义千问
    */
   static async callDashScope(model, prompt) {
-    // TODO: 实现 DashScope API 调用
-    // const response = await dashscope.chat.completions.create({
-    //   model: model.model,
-    //   messages: [{ role: 'user', content: prompt }],
-    //   temperature: model.temperature,
-    //   max_tokens: model.maxTokens
-    // });
+    const apiKey = config.models.dashscope.apiKey;
     
-    // 模拟响应
-    return {
-      content: '这是通义千问的回答...',
-      usage: {
-        inputTokens: prompt.length / 4,
-        outputTokens: 100,
-        totalTokens: prompt.length / 4 + 100
-      }
-    };
+    // 如果没有配置 API Key，使用模拟模式
+    if (!apiKey) {
+      logger.warn('DashScope API Key 未配置，使用模拟响应');
+      console.log('🤖 [通义千问模拟]', prompt.slice(0, 50) + '...');
+      return {
+        content: '这是通义千问的回答...(开发模式)',
+        usage: {
+          inputTokens: prompt.length / 4,
+          outputTokens: 100,
+          totalTokens: prompt.length / 4 + 100
+        }
+      };
+    }
+
+    try {
+      // 调用 DashScope API
+      const response = await axios.post(
+        'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation',
+        {
+          model: model.model,
+          input: {
+            messages: [
+              { role: 'system', content: model.context },
+              { role: 'user', content: prompt }
+            ]
+          },
+          parameters: {
+            temperature: model.temperature,
+            max_tokens: model.maxTokens
+          }
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 30000
+        }
+      );
+
+      const result = response.data;
+      
+      return {
+        content: result.output?.text || result.output?.choices?.[0]?.message?.content || '无响应',
+        usage: {
+          inputTokens: result.usage?.input_tokens || 0,
+          outputTokens: result.usage?.output_tokens || 0,
+          totalTokens: result.usage?.total_tokens || 0
+        }
+      };
+    } catch (error) {
+      logger.error('通义千问调用失败', error.response?.data || error.message);
+      throw new Error('AI 服务暂时不可用');
+    }
   }
   
   /**

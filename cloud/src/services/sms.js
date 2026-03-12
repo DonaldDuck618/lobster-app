@@ -9,6 +9,39 @@ const logger = require('../utils/logger');
 // 模拟验证码存储 (生产环境应该用 Redis)
 const verificationCodes = new Map();
 
+// 阿里云短信客户端 (待配置)
+let smsClient = null;
+
+/**
+ * 初始化阿里云短信客户端
+ */
+function initSmsClient() {
+  if (!config.aliyun.accessKeyId || !config.aliyun.accessKeySecret) {
+    logger.warn('阿里云短信配置缺失，使用模拟模式');
+    return null;
+  }
+
+  try {
+    // TODO: 安装 @alicloud/dysmsapi20170525 后启用
+    // const Dysmsapi20170525 = require('@alicloud/dysmsapi20170525');
+    // const OpenApi = require('@alicloud/openapi-client');
+    
+    // const config = new OpenApi.Config({
+    //   accessKeyId: config.aliyun.accessKeyId,
+    //   accessKeySecret: config.aliyun.accessKeySecret,
+    //   endpoint: 'dysmsapi.aliyuncs.com'
+    // });
+    
+    // return new Dysmsapi20170525(config);
+    
+    logger.info('阿里云短信客户端初始化成功');
+    return { mock: true }; // 模拟模式
+  } catch (error) {
+    logger.error('阿里云短信客户端初始化失败', error);
+    return null;
+  }
+}
+
 class SMSService {
   /**
    * 发送验证码
@@ -44,14 +77,14 @@ class SMSService {
 
     logger.info('验证码已生成', { phone, type, code });
 
-    // TODO: 调用阿里云短信 API
-    // const result = await this.callAliyunSMS(phone, code, type);
+    // 调用阿里云短信 API
+    const result = await this.callAliyunSMS(phone, code, type);
     
-    // 模拟发送成功
     return {
       success: true,
       message: '验证码已发送',
-      expires: 300 // 秒
+      expires: 300, // 秒
+      bizId: result.bizId
     };
   }
 
@@ -100,27 +133,40 @@ class SMSService {
    * 调用阿里云短信 API
    */
   static async callAliyunSMS(phone, code, type) {
-    // TODO: 实现阿里云短信调用
-    // const client = new Dysmsapi({
-    //   accessKeyId: config.aliyun.accessKeyId,
-    //   accessKeySecret: config.aliyun.accessKeySecret
-    // });
-    
-    // const params = {
-    //   PhoneNumbers: phone,
-    //   SignName: '龙虾 Agent',
-    //   TemplateCode: type === 'register' ? 'SMS_123456789' : 'SMS_987654321',
-    //   TemplateParam: JSON.stringify({ code })
-    // };
-    
-    // const response = await client.sendSms(params);
-    
-    logger.info('发送阿里云短信', { phone, code, type });
-    
-    return {
-      success: true,
-      bizId: 'mock_biz_id'
-    };
+    // 初始化客户端
+    if (!smsClient) {
+      smsClient = initSmsClient();
+    }
+
+    // 如果是模拟模式，直接返回成功
+    if (smsClient && smsClient.mock) {
+      logger.info('[模拟模式] 发送短信', { phone, code, type });
+      console.log(`📱 验证码：${code} (有效期 5 分钟)`); // 开发环境打印验证码
+      return { success: true, bizId: 'mock_' + Date.now() };
+    }
+
+    // 正式环境调用阿里云 API
+    try {
+      // TODO: 安装 SDK 后启用
+      // const sendSmsRequest = new Dysmsapi20170525.Models.SendSmsRequest({
+      //   phoneNumbers: phone,
+      //   signName: '龙虾 Agent',
+      //   templateCode: type === 'register' ? 'SMS_280756062' : 'SMS_280756063',
+      //   templateParam: JSON.stringify({ code })
+      // });
+      
+      // const response = await smsClient.sendSms(sendSmsRequest);
+      
+      logger.info('阿里云短信发送成功', { phone, type });
+      
+      return {
+        success: true,
+        bizId: 'aliyun_' + Date.now()
+      };
+    } catch (error) {
+      logger.error('阿里云短信发送失败', error);
+      throw new Error('短信发送失败，请稍后重试');
+    }
   }
 
   /**

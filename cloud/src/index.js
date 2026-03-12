@@ -18,6 +18,7 @@ const routes = require('./routes');
 const WebSocketServer = require('./services/websocket');
 const { initializeCronJobs } = require('./services/cron');
 const { initializeDatabase } = require('./models/database');
+const { initializeRedis } = require('./services/redis');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -77,6 +78,9 @@ const server = app.listen(PORT, () => {
   
   // 初始化数据库
   initializeDatabase();
+  
+  // 初始化 Redis
+  initializeRedis();
   
   // 初始化 WebSocket
   const wss = new WebSocketServer(server);

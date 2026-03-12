@@ -77,9 +77,20 @@ module.exports = {
   
   // 微信小程序配置
   wechat: {
-    appid: process.env.WECHAT_APPID,
+    appid: process.env.WECHAT_APPID || 'wx63721a0ef442fb67',
     secret: process.env.WECHAT_SECRET,
     grantType: process.env.WECHAT_GRANT_TYPE || 'client_credential'
+  },
+  
+  // 阿里云配置
+  aliyun: {
+    accessKeyId: process.env.ALIYUN_ACCESS_KEY_ID,
+    accessKeySecret: process.env.ALIYUN_ACCESS_KEY_SECRET,
+    sms: {
+      signName: process.env.ALIYUN_SMS_SIGN_NAME || '龙虾 Agent',
+      registerTemplate: process.env.ALIYUN_SMS_REGISTER_TEMPLATE || 'SMS_280756062',
+      loginTemplate: process.env.ALIYUN_SMS_LOGIN_TEMPLATE || 'SMS_280756063'
+    }
   },
   
   // 限流配置

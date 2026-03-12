@@ -195,22 +195,25 @@ class AuthService {
    */
   static async loginWithWechat(code, encryptedData, iv) {
     // 调用微信 API 换取 openid
-    const response = await axios.get('https://api.weixin.qq.com/sns/jscode2session', {
-      params: {
-        appid: config.wechat.appid,
-        secret: config.wechat.secret,
-        js_code: code,
-        grant_type: config.wechat.grantType
+    try {
+      const response = await axios.get('https://api.weixin.qq.com/sns/jscode2session', {
+        params: {
+          appid: config.wechat.appid,
+          secret: config.wechat.secret,
+          js_code: code,
+          grant_type: config.wechat.grantType
+        },
+        timeout: 5000
+      });
+
+      const { openid, session_key, unionid, errcode, errmsg } = response.data;
+
+      if (errcode !== 0) {
+        logger.error('微信登录失败', { errcode, errmsg });
+        const error = new Error(`微信登录失败：${errmsg}`);
+        error.status = 400;
+        throw error;
       }
-    });
-
-    const { openid, session_key, unionid, errcode, errmsg } = response.data;
-
-    if (errcode !== 0) {
-      const error = new Error(`微信登录失败：${errmsg}`);
-      error.status = 400;
-      throw error;
-    }
 
     // 查找或创建用户
     let user = Array.from(users.values()).find(u => u.wechatOpenid === openid);
@@ -246,15 +249,21 @@ class AuthService {
 
     const token = this.generateToken(user);
 
-    logger.info('微信登录成功', { userId: user.id, openid });
+      logger.info('微信登录成功', { userId: user.id, openid });
 
-    return {
-      id: user.id,
-      nickname: user.nickname,
-      avatar: user.avatar,
-      token,
-      isNewUser: !user.createdAt
-    };
+      return {
+        id: user.id,
+        nickname: user.nickname,
+        avatar: user.avatar,
+        token,
+        isNewUser: !user.createdAt
+      };
+    } catch (error) {
+      if (error.response) {
+        logger.error('微信 API 调用失败', error.response.data);
+      }
+      throw error;
+    }
   }
 
   /**
