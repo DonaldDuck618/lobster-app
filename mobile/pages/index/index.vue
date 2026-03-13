@@ -23,6 +23,8 @@
             <view class="message-content">
               <view class="message-bubble">
                 <text>{{msg.content}}</text>
+                <!-- 图片消息 -->
+                <image v-if="msg.image" :src="msg.image" mode="widthFix" class="message-image" />
               </view>
               <text class="message-time">{{msg.time}}</text>
             </view>
@@ -33,6 +35,8 @@
             <view class="message-content">
               <view class="message-bubble">
                 <text>{{msg.content}}</text>
+                <!-- 图片消息 -->
+                <image v-if="msg.image" :src="msg.image" mode="widthFix" class="message-image" />
               </view>
               <text class="message-time">{{msg.time}}</text>
             </view>
@@ -69,9 +73,16 @@
       
       <!-- 输入框 -->
       <view class="input-box">
+        <!-- 拍照/图片按钮 -->
+        <view class="image-btn" @tap="uploadImage">
+          <text class="icon">📸</text>
+        </view>
+        
+        <!-- 文件按钮 -->
         <view class="file-btn" @tap="uploadFile">
           <text class="icon">📎</text>
         </view>
+        
         <input 
           class="input" 
           v-model="inputText"
@@ -79,9 +90,12 @@
           confirm-type="send"
           @confirm="sendMessage"
         />
-        <view class="voice-btn" @tap="startVoice">
-          <text class="icon">🎤</text>
+        
+        <!-- 语音按钮 -->
+        <view class="voice-btn" @tap="startVoice" :class="{recording: isRecording}">
+          <text class="icon">{{isRecording ? '⏹️' : '🎤'}}</text>
         </view>
+        
         <view 
           class="send-btn" 
           :class="{active: inputText.trim()}"
@@ -95,16 +109,19 @@
 </template>
 
 <script>
+import { API_BASE_URL } from '@/utils/config'
+
 export default {
   data() {
     return {
       scrollToView: '',
       inputText: '',
       isLoading: false,
+      isRecording: false,
       messages: [
         {
           role: 'assistant',
-          content: '你好！我是龙虾 Agent，可以帮你处理 Excel、写周报、搜索报告等。有什么可以帮你的？',
+          content: '你好！我是龙虾汤，可以帮你处理 Excel、写周报、搜索报告等。有什么可以帮你的？',
           time: this.getCurrentTime()
         }
       ],
@@ -113,13 +130,17 @@ export default {
         { icon: '📝', text: '写周报', type: 'weekly_report' },
         { icon: '🔍', text: '搜索报告', type: 'search' },
         { icon: '✉️', text: '写邮件', type: 'email' },
-        { icon: '📈', text: '生成图表', type: 'chart' }
+        { icon: '📈', text: '生成图表', type: 'chart' },
+        { icon: '📸', text: '拍照识别', type: 'ocr' },
+        { icon: '🎤', text: '语音输入', type: 'voice' }
       ]
     }
   },
+
   onLoad() {
     // 页面加载
   },
+
   methods: {
     getCurrentTime() {
       const now = new Date()
@@ -128,7 +149,8 @@ export default {
       return `${hours}:${minutes}`
     },
     
-    sendMessage() {
+    // 发送消息
+    async sendMessage() {
       if (!this.inputText.trim()) return
       
       // 添加用户消息
@@ -143,53 +165,81 @@ export default {
       this.scrollToView = 'msg-' + (this.messages.length - 1)
       
       // 调用 AI
-      this.callAI(userMessage)
+      await this.callAI(userMessage)
     },
     
-    async callAI(message) {
+    // 上传图片
+    async uploadImage() {
+      const that = this
+      uni.chooseImage({
+        count: 1,
+        sourceType: ['camera', 'album'],
+        success: function(res) {
+          const tempFilePath = res.tempFilePaths[0]
+          
+          // 显示图片消息
+          that.messages.push({
+            role: 'user',
+            content: '请识别这张图片',
+            image: tempFilePath,
+            time: that.getCurrentTime()
+          })
+          
+          // 调用 OCR 识别
+          that.callOCR(tempFilePath)
+        }
+      })
+    },
+    
+    // OCR 识别
+    async callOCR(imagePath) {
       this.isLoading = true
       
-      try {
-        // TODO: 调用云侧 API
-        // const response = await uni.request({
-        //   url: 'https://api.lobster-app.com/v1/chat',
-        //   method: 'POST',
-        //   data: { message }
-        // })
-        
-        // 模拟响应
-        setTimeout(() => {
+      const token = uni.getStorageSync('token')
+      
+      uni.uploadFile({
+        url: API_BASE_URL + '/api/v1/vision/ocr',
+        filePath: imagePath,
+        name: 'image',
+        header: {
+          'Authorization': `Bearer ${token}`
+        },
+        success: (res) => {
+          const data = JSON.parse(res.data)
+          if (data.success) {
+            this.messages.push({
+              role: 'assistant',
+              content: `📸 图片识别成功：\n${data.data.text}`,
+              time: this.getCurrentTime()
+            })
+          } else {
+            this.messages.push({
+              role: 'assistant',
+              content: '❌ 识别失败，请重试',
+              time: this.getCurrentTime()
+            })
+          }
+        },
+        fail: (err) => {
+          console.error('OCR 识别失败', err)
           this.messages.push({
             role: 'assistant',
-            content: '收到！我正在处理你的请求："'+ message +'"。稍后会给你详细回复。',
+            content: '❌ 识别失败，请重试',
             time: this.getCurrentTime()
           })
+        },
+        complete: () => {
           this.isLoading = false
-          this.scrollToView = 'msg-' + (this.messages.length - 1)
-        }, 1500)
-        
-      } catch (error) {
-        console.error('AI 调用失败:', error)
-        this.isLoading = false
-        uni.showToast({
-          title: '请求失败，请重试',
-          icon: 'none'
-        })
-      }
+        }
+      })
     },
     
-    selectAction(action) {
-      this.inputText = action.text
-      // 可以直接发送，也可以让用户编辑
-      // this.sendMessage()
-    },
-    
+    // 上传文件
     uploadFile() {
       uni.chooseMessage({
         type: 'file',
         success: (res) => {
           console.log('选择文件:', res)
-          // TODO: 上传文件
           uni.showToast({
             title: '文件选择成功',
             icon: 'success'
@@ -198,12 +248,149 @@ export default {
       })
     },
     
+    // 语音输入
     startVoice() {
-      // TODO: 语音输入
-      uni.showToast({
-        title: '语音功能开发中',
-        icon: 'none'
+      if (this.isRecording) {
+        // 停止录音
+        this.isRecording = false
+        uni.stopRecord()
+        uni.showToast({
+          title: '录音已停止',
+          icon: 'success'
+        })
+      } else {
+        // 开始录音
+        this.isRecording = true
+        uni.startRecord({
+          success: (res) => {
+            const tempFilePath = res.tempFilePath
+            this.isRecording = false
+            
+            // 显示语音消息
+            this.messages.push({
+              role: 'user',
+              content: '🎤 [语音消息]',
+              time: this.getCurrentTime()
+            })
+            
+            // 调用语音识别
+            this.callSpeechToText(tempFilePath)
+          },
+          fail: (err) => {
+            console.error('录音失败', err)
+            this.isRecording = false
+            uni.showToast({
+              title: '录音失败',
+              icon: 'none'
+            })
+          }
+        })
+        
+        uni.showToast({
+          title: '正在录音...',
+          icon: 'none'
+        })
+      }
+    },
+    
+    // 语音转文字
+    async callSpeechToText(audioPath) {
+      this.isLoading = true
+      
+      const token = uni.getStorageSync('token')
+      
+      uni.uploadFile({
+        url: API_BASE_URL + '/api/v1/audio/transcribe',
+        filePath: audioPath,
+        name: 'audio',
+        header: {
+          'Authorization': `Bearer ${token}`
+        },
+        success: (res) => {
+          const data = JSON.parse(res.data)
+          if (data.success) {
+            this.messages.push({
+              role: 'assistant',
+              content: `🎤 语音识别结果：\n${data.data.text}`,
+              time: this.getCurrentTime()
+            })
+          } else {
+            this.messages.push({
+              role: 'assistant',
+              content: '❌ 识别失败，请重试',
+              time: this.getCurrentTime()
+            })
+          }
+        },
+        fail: (err) => {
+          console.error('语音识别失败', err)
+          this.messages.push({
+            role: 'assistant',
+            content: '❌ 识别失败，请重试',
+            time: this.getCurrentTime()
+          })
+        },
+        complete: () => {
+          this.isLoading = false
+        }
       })
+    },
+    
+    // 选择快捷指令
+    selectAction(action) {
+      this.inputText = action.text
+      // 可以直接发送，也可以让用户编辑
+      // this.sendMessage()
+    },
+    
+    // 调用 AI
+    async callAI(message) {
+      this.isLoading = true
+      
+      try {
+        const token = uni.getStorageSync('token') || ''
+        
+        const response = await uni.request({
+          url: API_BASE_URL + '/api/v1/chat/send',
+          method: 'POST',
+          data: {
+            message: message
+          },
+          header: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        
+        if (response[1].statusCode === 200) {
+          const result = response[1].data
+          if (result.success) {
+            this.messages.push({
+              role: 'assistant',
+              content: result.data.response || '收到你的消息',
+              time: this.getCurrentTime()
+            })
+          } else {
+            this.messages.push({
+              role: 'assistant',
+              content: '抱歉，处理失败，请重试',
+              time: this.getCurrentTime()
+            })
+          }
+        } else {
+          throw new Error(response[1].data.message || '请求失败')
+        }
+      } catch (error) {
+        console.error('AI 调用失败:', error)
+        
+        // 开发模式：模拟响应
+        this.messages.push({
+          role: 'assistant',
+          content: `收到："${message}"\n\n（开发模式：API 尚未对接真实 AI）`,
+          time: this.getCurrentTime()
+        })
+      } finally {
+        this.isLoading = false
+      }
     }
   }
 }
@@ -214,13 +401,13 @@ export default {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: #F5F5F5;
+  background: #f5f5f5;
 }
 
 /* 头部 */
 .header {
   padding: 20px 15px;
-  background: linear-gradient(135deg, #E74C3C, #C0392B);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
 }
 
@@ -283,19 +470,25 @@ export default {
 }
 
 .message.assistant .message-bubble {
-  background-color: white;
+  background: white;
   border-bottom-left-radius: 4px;
 }
 
 .message.user .message-bubble {
-  background-color: #E74C3C;
+  background: #667eea;
   color: white;
   border-bottom-right-radius: 4px;
 }
 
 .message-bubble.loading {
-  background-color: #f0f0f0;
+  background: #f0f0f0;
   color: #999;
+}
+
+.message-image {
+  max-width: 100%;
+  border-radius: 8px;
+  margin-top: 10px;
 }
 
 .message-time {
@@ -307,7 +500,7 @@ export default {
 
 /* 输入区域 */
 .input-container {
-  background-color: white;
+  background: white;
   border-top: 1px solid #e0e0e0;
   padding-bottom: env(safe-area-inset-bottom);
 }
@@ -322,7 +515,7 @@ export default {
   display: inline-flex;
   align-items: center;
   padding: 8px 12px;
-  background-color: #f8f8f8;
+  background: #f8f8f8;
   border-radius: 20px;
   margin-right: 10px;
 }
@@ -343,6 +536,7 @@ export default {
   padding: 10px 15px;
 }
 
+.image-btn,
 .file-btn,
 .voice-btn,
 .send-btn {
@@ -358,9 +552,21 @@ export default {
   flex: 1;
   height: 40px;
   padding: 0 15px;
-  background-color: #f5f5f5;
+  background: #f5f5f5;
   border-radius: 20px;
   font-size: 15px;
+}
+
+.voice-btn.recording {
+  background: #ff4444;
+  border-radius: 50%;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
 }
 
 .send-btn {
@@ -369,5 +575,7 @@ export default {
 
 .send-btn.active {
   opacity: 1;
+  background: #667eea;
+  border-radius: 50%;
 }
 </style>

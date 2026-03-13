@@ -1,56 +1,52 @@
 #!/bin/bash
+# 龙虾 Agent API 测试脚本
 
-# 龙虾 API 测试脚本
+BASE_URL="${1:-http://8.129.98.129}"
 
-BASE_URL="http://localhost:3000/api/v1"
-TOKEN=""
+echo "=========================================="
+echo "🦞 龙虾 Agent API 测试"
+echo "Base URL: $BASE_URL"
+echo "=========================================="
+echo
 
-echo "🦞 龙虾 API 测试开始"
-echo "================================"
+# 测试健康检查
+echo "=== 1. 健康检查 ==="
+curl -s "$BASE_URL/health" | python3 -m json.tool
+echo
 
-# 1. 健康检查
-echo -e "\n1️⃣  健康检查..."
-curl -s "$BASE_URL/../health" | jq .
+# 测试 API 根路径
+echo "=== 2. API 根路径 ==="
+curl -s "$BASE_URL/api/v1" | python3 -m json.tool
+echo
 
-# 2. 发送验证码 (模拟)
-echo -e "\n2️⃣  发送验证码..."
-curl -s -X POST "$BASE_URL/auth/send-code" \
+# 测试用户注册
+echo "=== 3. 用户注册（测试）==="
+curl -s -X POST "$BASE_URL/api/v1/auth/register" \
   -H "Content-Type: application/json" \
-  -d '{"phone":"13800138000","type":"register"}' | jq .
+  -d '{"email":"test@test.com","password":"123456","nickname":"测试用户"}' | python3 -m json.tool
+echo
 
-# 3. 手机号注册 (使用测试验证码 123456)
-echo -e "\n3️⃣  手机号注册..."
-RESPONSE=$(curl -s -X POST "$BASE_URL/auth/register/phone" \
+# 测试用户登录
+echo "=== 4. 用户登录（测试）==="
+TOKEN=$(curl -s -X POST "$BASE_URL/api/v1/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"phone":"13800138000","code":"123456","nickname":"测试用户"}')
+  -d '{"email":"test@test.com","password":"123456"}' | python3 -c "import sys,json; print(json.load(sys.stdin).get('data',{}).get('token',''))")
 
-echo $RESPONSE | jq .
-TOKEN=$(echo $RESPONSE | jq -r '.data.token')
-echo "Token: $TOKEN"
+if [ -n "$TOKEN" ]; then
+  echo "获取 Token 成功"
+  echo "Token: ${TOKEN:0:50}..."
+  echo
+  
+  # 测试获取用户信息
+  echo "=== 5. 获取用户信息 ==="
+  curl -s "$BASE_URL/api/v1/users/profile" \
+    -H "Authorization: Bearer $TOKEN" | python3 -m json.tool
+  echo
+else
+  echo "登录失败，跳过后续测试"
+  echo
+fi
 
-# 4. 发送消息
-echo -e "\n4️⃣  发送消息..."
-curl -s -X POST "$BASE_URL/chat/send" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $TOKEN" \
-  -d '{"message":"你好，龙虾汤"}' | jq .
-
-# 5. 获取会员计划
-echo -e "\n5️⃣  获取会员计划..."
-curl -s "$BASE_URL/payment/plans" | jq .
-
-# 6. 文件上传测试
-echo -e "\n6️⃣  文件上传测试..."
-# 创建一个测试文件
-echo "test,data" > /tmp/test.csv
-echo "1,2" >> /tmp/test.csv
-
-curl -s -X POST "$BASE_URL/files/upload" \
-  -H "Authorization: Bearer $TOKEN" \
-  -F "file=@/tmp/test.csv" | jq .
-
-# 清理
-rm -f /tmp/test.csv
-
-echo -e "\n✅ 测试完成!"
-echo "================================"
+echo "=========================================="
+echo "✅ 测试完成！"
+echo "=========================================="
