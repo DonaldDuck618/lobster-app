@@ -1,114 +1,103 @@
 /**
  * 大模型路由服务
- * 根据任务类型智能选择最优模型
+ * 支持多模型切换：阿里云百炼、通义千问、智谱 GLM、MiniMax、Kimi
  */
 
 const config = require('../config');
 const logger = require('../utils/logger');
+const axios = require('axios');
 
 // 模型配置
 const MODELS = {
-  // 日常对话 - 最便宜
-  chat: {
-    provider: 'minimax',
-    model: 'abab6.5',
+  // 阿里云百炼（新增，默认）
+  bailian: {
+    provider: 'bailian',
+    model: process.env.BAILIAN_MODEL || 'qwen-plus',
+    apiKey: process.env.BAILIAN_API_KEY || 'sk-cea10340d64a459fb785294982232ea7',
+    baseUrl: 'https://dashscope.aliyuncs.com/api/v1',
     temperature: 0.7,
     maxTokens: 2000,
-    price: 0.001, // ¥/1K tokens
     context: '你是龙虾汤 AI 助手。用中文简洁回答。'
   },
   
-  // Excel 分析 - 性价比
-  excel: {
+  // 通义千问（备用）
+  qwen: {
     provider: 'dashscope',
     model: 'qwen-plus',
-    temperature: 0.3,
-    maxTokens: 4000,
-    price: 0.004,
-    context: '你是数据分析专家。分析 Excel 数据，输出关键洞察。用表格和图表展示。'
+    apiKey: process.env.DASHSCOPE_API_KEY,
+    temperature: 0.7,
+    maxTokens: 2000,
+    context: '你是龙虾汤 AI 助手。用中文简洁回答。'
   },
   
-  // 文案写作 - 中等
-  writing: {
+  // 智谱 GLM
+  glm: {
     provider: 'zhipu',
     model: 'glm-4',
-    temperature: 0.8,
-    maxTokens: 3000,
-    price: 0.005,
-    context: '你是专业文案。写作用户需要的内容，语言流畅、专业。'
+    apiKey: process.env.ZHIPU_API_KEY,
+    temperature: 0.7,
+    maxTokens: 2000,
+    context: '你是龙虾汤 AI 助手。用中文简洁回答。'
   },
   
-  // 代码生成 - 好模型
-  code: {
-    provider: 'dashscope',
-    model: 'qwen-max',
-    temperature: 0.2,
-    maxTokens: 4000,
-    price: 0.02,
-    context: '你是资深程序员。写高质量代码，加注释。'
+  // MiniMax（便宜，适合对话）
+  minimax: {
+    provider: 'minimax',
+    model: 'abab6.5',
+    apiKey: process.env.MINIMAX_API_KEY,
+    temperature: 0.7,
+    maxTokens: 2000,
+    context: '你是龙虾汤 AI 助手。用中文简洁回答。'
   },
   
-  // 复杂推理 - 最好的
-  reasoning: {
-    provider: 'dashscope',
-    model: 'qwen-max',
-    temperature: 0.5,
-    maxTokens: 4000,
-    price: 0.02,
-    context: '你是逻辑专家。逐步推理，给出详细分析过程。'
+  // Kimi（长文本）
+  kimi: {
+    provider: 'moonshot',
+    model: 'kimi-plus',
+    apiKey: process.env.MOONSHOT_API_KEY,
+    temperature: 0.7,
+    maxTokens: 2000,
+    context: '你是龙虾汤 AI 助手。用中文简洁回答。'
   }
 };
 
-// 任务类型映射
-const TASK_TYPE_MAP = {
-  '聊天': 'chat',
-  '对话': 'chat',
-  'Excel': 'excel',
-  '分析': 'excel',
-  '数据': 'excel',
-  '周报': 'writing',
-  '日报': 'writing',
-  '文案': 'writing',
-  '邮件': 'writing',
-  '代码': 'code',
-  '编程': 'code',
-  '推理': 'reasoning',
-  '逻辑': 'reasoning'
+// 任务类型到模型的映射
+const TASK_MODEL_MAP = {
+  'chat': 'bailian',           // 日常对话 - 用百炼
+  'excel': 'bailian',          // Excel 分析 - 用百炼
+  'writing': 'bailian',        // 文案写作 - 用百炼
+  'code': 'bailian',           // 代码生成 - 用百炼
+  'reasoning': 'bailian',      // 复杂推理 - 用百炼
+  'ocr': 'bailian',            // OCR 识别 - 用百炼
+  'search': 'bailian'          // 搜索报告 - 用百炼
 };
 
 class LLMRouter {
   /**
    * 根据任务类型选择模型
    */
-  static selectModel(taskType, message) {
-    // 1. 关键词匹配
-    for (const [keyword, type] of Object.entries(TASK_TYPE_MAP)) {
-      if (message.includes(keyword) || taskType.includes(keyword)) {
-        return MODELS[type];
-      }
-    }
-    
-    // 2. 默认用聊天模型 (最便宜)
-    return MODELS.chat;
+  static selectModel(taskType, userPreference = 'bailian') {
+    // 用户可以指定偏好模型
+    const modelKey = userPreference || TASK_MODEL_MAP[taskType] || 'bailian';
+    return MODELS[modelKey] || MODELS.bailian;
   }
-  
+
   /**
    * 调用大模型
    */
-  static async call({ taskType, message, sessionId, userId }) {
+  static async call({ taskType, message, sessionId, userId, modelPreference }) {
     const startTime = Date.now();
     
     // 选择模型
-    const model = this.selectModel(taskType, message);
+    const model = this.selectModel(taskType, modelPreference);
     
     logger.info('调用大模型', {
       userId,
-      sessionId,
       model: model.model,
       provider: model.provider,
       taskType
     });
-    
+
     try {
       // 构建 Prompt
       const prompt = this.buildPrompt(model.context, message);
@@ -116,6 +105,9 @@ class LLMRouter {
       // 调用对应 provider 的 API
       let response;
       switch (model.provider) {
+        case 'bailian':
+          response = await this.callBailian(model, prompt);
+          break;
         case 'dashscope':
           response = await this.callDashScope(model, prompt);
           break;
@@ -131,10 +123,10 @@ class LLMRouter {
         default:
           throw new Error(`未知的 provider: ${model.provider}`);
       }
-      
+
       // 记录用量
       const duration = Date.now() - startTime;
-      const cost = this.calculateCost(response.usage, model.price);
+      const cost = this.calculateCost(response.usage, model);
       
       logger.info('大模型调用成功', {
         userId,
@@ -151,7 +143,6 @@ class LLMRouter {
         cost,
         duration
       };
-      
     } catch (error) {
       logger.error('大模型调用失败', {
         userId,
@@ -160,52 +151,43 @@ class LLMRouter {
       });
       
       // 降级策略：切换到备用模型
-      if (model.provider !== 'dashscope') {
-        logger.info('尝试降级到通义千问');
+      if (model.provider !== 'bailian') {
+        logger.info('降级到阿里云百炼');
         return await this.call({
-          taskType: 'chat', // 降级用聊天
-          message: `抱歉，刚才的服务暂时不可用。你的问题是：${message}`,
+          taskType,
+          message,
           sessionId,
-          userId
+          userId,
+          modelPreference: 'bailian'
         });
       }
       
       throw error;
     }
   }
-  
+
   /**
    * 构建 Prompt
    */
   static buildPrompt(context, message) {
-    // 精简 Prompt，节省 tokens
     return `${context}\n\n用户：${message}\n助手：`;
   }
-  
+
   /**
-   * 调用通义千问
+   * 调用阿里云百炼 API
    */
-  static async callDashScope(model, prompt) {
-    const apiKey = config.models.dashscope.apiKey;
-    
-    // 如果没有配置 API Key，使用模拟模式
-    if (!apiKey) {
-      logger.warn('DashScope API Key 未配置，使用模拟响应');
-      console.log('🤖 [通义千问模拟]', prompt.slice(0, 50) + '...');
+  static async callBailian(model, prompt) {
+    if (!model.apiKey) {
+      logger.warn('百炼 API Key 未配置，使用模拟响应');
       return {
-        content: '这是通义千问的回答...(开发模式)',
-        usage: {
-          inputTokens: prompt.length / 4,
-          outputTokens: 100,
-          totalTokens: prompt.length / 4 + 100
-        }
+        content: '这是阿里云百炼的模拟响应（API Key 未配置）',
+        usage: { inputTokens: 10, outputTokens: 20, totalTokens: 30 }
       };
     }
 
     try {
-      // 调用 DashScope API
       const response = await axios.post(
-        'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation',
+        `${model.baseUrl}/services/aigc/text-generation/generation`,
         {
           model: model.model,
           input: {
@@ -221,7 +203,7 @@ class LLMRouter {
         },
         {
           headers: {
-            'Authorization': `Bearer ${apiKey}`,
+            'Authorization': `Bearer ${model.apiKey}`,
             'Content-Type': 'application/json'
           },
           timeout: 30000
@@ -239,70 +221,187 @@ class LLMRouter {
         }
       };
     } catch (error) {
-      logger.error('通义千问调用失败', error.response?.data || error.message);
-      throw new Error('AI 服务暂时不可用');
+      logger.error('百炼 API 调用失败', error.response?.data || error.message);
+      throw new Error('百炼 API 调用失败');
     }
   }
-  
+
   /**
-   * 调用智谱 GLM
+   * 调用通义千问 API
+   */
+  static async callDashScope(model, prompt) {
+    // 复用百炼调用（同一个 API）
+    return await this.callBailian(model, prompt);
+  }
+
+  /**
+   * 调用智谱 GLM API
    */
   static async callZhipu(model, prompt) {
-    // TODO: 实现 Zhipu API 调用
-    return {
-      content: '这是智谱 GLM 的回答...',
-      usage: {
-        inputTokens: prompt.length / 4,
-        outputTokens: 100,
-        totalTokens: prompt.length / 4 + 100
-      }
-    };
+    if (!model.apiKey) {
+      return {
+        content: '智谱 GLM API Key 未配置',
+        usage: { inputTokens: 10, outputTokens: 20, totalTokens: 30 }
+      };
+    }
+
+    try {
+      const response = await axios.post(
+        'https://open.bigmodel.cn/api/paas/v4/chat/completions',
+        {
+          model: model.model,
+          messages: [
+            { role: 'system', content: model.context },
+            { role: 'user', content: prompt }
+          ]
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${model.apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 30000
+        }
+      );
+
+      const result = response.data;
+      
+      return {
+        content: result.choices?.[0]?.message?.content || '无响应',
+        usage: {
+          inputTokens: result.usage?.prompt_tokens || 0,
+          outputTokens: result.usage?.completion_tokens || 0,
+          totalTokens: result.usage?.total_tokens || 0
+        }
+      };
+    } catch (error) {
+      logger.error('智谱 API 调用失败', error.response?.data || error.message);
+      throw new Error('智谱 API 调用失败');
+    }
   }
-  
+
   /**
-   * 调用 MiniMax
+   * 调用 MiniMax API
    */
   static async callMiniMax(model, prompt) {
-    // TODO: 实现 MiniMax API 调用
-    return {
-      content: '这是 MiniMax 的回答...',
-      usage: {
-        inputTokens: prompt.length / 4,
-        outputTokens: 100,
-        totalTokens: prompt.length / 4 + 100
-      }
-    };
+    if (!model.apiKey) {
+      return {
+        content: 'MiniMax API Key 未配置',
+        usage: { inputTokens: 10, outputTokens: 20, totalTokens: 30 }
+      };
+    }
+
+    try {
+      const response = await axios.post(
+        'https://api.minimax.chat/v1/text/chatcompletion_v2',
+        {
+          model: model.model,
+          messages: [
+            { role: 'system', content: model.context },
+            { role: 'user', content: prompt }
+          ]
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${model.apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 30000
+        }
+      );
+
+      const result = response.data;
+      
+      return {
+        content: result.choices?.[0]?.message?.content || '无响应',
+        usage: {
+          inputTokens: result.usage?.prompt_tokens || 0,
+          outputTokens: result.usage?.completion_tokens || 0,
+          totalTokens: result.usage?.total_tokens || 0
+        }
+      };
+    } catch (error) {
+      logger.error('MiniMax API 调用失败', error.response?.data || error.message);
+      throw new Error('MiniMax API 调用失败');
+    }
   }
-  
+
   /**
-   * 调用 Moonshot Kimi
+   * 调用 Moonshot Kimi API
    */
   static async callMoonshot(model, prompt) {
-    // TODO: 实现 Moonshot API 调用
-    return {
-      content: '这是 Kimi 的回答...',
-      usage: {
-        inputTokens: prompt.length / 4,
-        outputTokens: 100,
-        totalTokens: prompt.length / 4 + 100
-      }
-    };
+    if (!model.apiKey) {
+      return {
+        content: 'Moonshot API Key 未配置',
+        usage: { inputTokens: 10, outputTokens: 20, totalTokens: 30 }
+      };
+    }
+
+    try {
+      const response = await axios.post(
+        'https://api.moonshot.cn/v1/chat/completions',
+        {
+          model: model.model,
+          messages: [
+            { role: 'system', content: model.context },
+            { role: 'user', content: prompt }
+          ]
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${model.apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 30000
+        }
+      );
+
+      const result = response.data;
+      
+      return {
+        content: result.choices?.[0]?.message?.content || '无响应',
+        usage: {
+          inputTokens: result.usage?.prompt_tokens || 0,
+          outputTokens: result.usage?.completion_tokens || 0,
+          totalTokens: result.usage?.total_tokens || 0
+        }
+      };
+    } catch (error) {
+      logger.error('Moonshot API 调用失败', error.response?.data || error.message);
+      throw new Error('Moonshot API 调用失败');
+    }
   }
-  
+
   /**
    * 计算成本
    */
-  static calculateCost(usage, pricePer1K) {
-    return (usage.totalTokens / 1000) * pricePer1K;
+  static calculateCost(usage, model) {
+    // 不同模型的单价（元/1K tokens）
+    const prices = {
+      'bailian': { input: 0.004, output: 0.012 },
+      'qwen-plus': { input: 0.004, output: 0.012 },
+      'qwen-max': { input: 0.02, output: 0.06 },
+      'glm-4': { input: 0.005, output: 0.015 },
+      'abab6.5': { input: 0.001, output: 0.003 },
+      'kimi-plus': { input: 0.006, output: 0.018 }
+    };
+
+    const price = prices[model.model] || prices.bailian;
+    const inputCost = (usage.inputTokens / 1000) * price.input;
+    const outputCost = (usage.outputTokens / 1000) * price.output;
+    
+    return inputCost + outputCost;
   }
-  
+
   /**
-   * 获取模型列表
+   * 获取可用模型列表
    */
-  static getModels() {
-    return Object.entries(MODELS).map(([type, config]) => ({
-      type,
-      ...config
+  static getAvailableModels() {
+    return Object.entries(MODELS).map(([key, model]) => ({
+      key,
+      name: model.model,
+      provider: model.provider,
+      available: !!model.apiKey
     }));
   }
 }
