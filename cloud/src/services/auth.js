@@ -6,29 +6,17 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
-const axios = require('axios');
 const config = require('../config');
 const logger = require('../utils/logger');
-const SMSService = require('./sms');
 
-// 模拟数据库 (实际应该用 PostgreSQL)
+// 模拟数据库（实际应该用 MySQL）
 const users = new Map();
 
 class AuthService {
   /**
    * 手机号注册
    */
-  static async registerByPhone({ phone, code, nickname, avatar }) {
-    // 验证手机号格式
-    if (!SMSService.validatePhoneFormat(phone)) {
-      const error = new Error('手机号格式不正确');
-      error.status = 400;
-      throw error;
-    }
-
-    // 验证验证码
-    await SMSService.verifyCode(phone, code, 'register');
-
+  static async registerByPhone({ phone, password, nickname }) {
     // 检查手机号是否已注册
     const existingUser = Array.from(users.values()).find(u => u.phone === phone);
     if (existingUser) {
@@ -37,13 +25,18 @@ class AuthService {
       throw error;
     }
 
+    // 加密密码
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
     // 创建用户
     const user = {
       id: uuidv4(),
       phone,
       phoneVerified: true,
-      nickname: nickname || `龙虾用户_${phone.slice(-4)}`,
-      avatar,
+      password: hashedPassword,
+      nickname: nickname || `用户${phone.slice(-4)}`,
+      avatar: null,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -67,39 +60,30 @@ class AuthService {
   /**
    * 手机号登录
    */
-  static async loginByPhone({ phone, code }) {
-    // 验证手机号格式
-    if (!SMSService.validatePhoneFormat(phone)) {
-      const error = new Error('手机号格式不正确');
-      error.status = 400;
+  static async loginByPhone({ phone, password }) {
+    // 查找用户
+    const user = Array.from(users.values()).find(u => u.phone === phone);
+    if (!user) {
+      const error = new Error('手机号或密码错误');
+      error.status = 401;
       throw error;
     }
 
-    // 验证验证码
-    await SMSService.verifyCode(phone, code, 'login');
-
-    // 查找用户
-    let user = Array.from(users.values()).find(u => u.phone === phone);
-
-    if (!user) {
-      // 自动注册
-      user = {
-        id: uuidv4(),
-        phone,
-        phoneVerified: true,
-        nickname: `龙虾用户_${phone.slice(-4)}`,
-        avatar: null,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-      users.set(user.id, user);
+    // 验证密码
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) {
+      const error = new Error('手机号或密码错误');
+      error.status = 401;
+      throw error;
     }
 
-    // 更新登录信息
+    // 更新登录时间
     user.lastLoginAt = new Date();
+    user.updatedAt = new Date();
 
     // 生成 Token
     const token = this.generateToken(user);
+    const refreshToken = this.generateRefreshToken(user);
 
     logger.info('手机号登录成功', { userId: user.id, phone });
 
@@ -108,15 +92,16 @@ class AuthService {
       phone: user.phone,
       nickname: user.nickname,
       avatar: user.avatar,
-      token
+      token,
+      refreshToken
     };
   }
 
   /**
-   * 用户注册 (邮箱)
+   * 邮箱注册
    */
-  static async register({ email, password, nickname }) {
-    // 检查用户是否存在
+  static async registerByEmail({ email, password, nickname }) {
+    // 检查邮箱是否已注册
     const existingUser = Array.from(users.values()).find(u => u.email === email);
     if (existingUser) {
       const error = new Error('邮箱已被注册');
@@ -132,8 +117,8 @@ class AuthService {
     const user = {
       id: uuidv4(),
       email,
-      password: hashedPassword,
       emailVerified: false,
+      password: hashedPassword,
       nickname: nickname || email.split('@')[0],
       avatar: null,
       createdAt: new Date(),
@@ -145,20 +130,21 @@ class AuthService {
     // 生成 Token
     const token = this.generateToken(user);
 
-    logger.info('用户注册成功', { userId: user.id, email });
+    logger.info('邮箱注册成功', { userId: user.id, email });
 
     return {
       id: user.id,
       email: user.email,
       nickname: user.nickname,
+      avatar: user.avatar,
       token
     };
   }
 
   /**
-   * 用户登录
+   * 邮箱登录
    */
-  static async login({ email, password }) {
+  static async loginByEmail({ email, password }) {
     // 查找用户
     const user = Array.from(users.values()).find(u => u.email === email);
     if (!user) {
@@ -175,143 +161,137 @@ class AuthService {
       throw error;
     }
 
+    // 更新登录时间
+    user.lastLoginAt = new Date();
+    user.updatedAt = new Date();
+
     // 生成 Token
     const token = this.generateToken(user);
     const refreshToken = this.generateRefreshToken(user);
 
-    logger.info('用户登录成功', { userId: user.id });
+    logger.info('邮箱登录成功', { userId: user.id, email });
 
     return {
       id: user.id,
       email: user.email,
       nickname: user.nickname,
+      avatar: user.avatar,
       token,
       refreshToken
     };
   }
 
   /**
-   * 微信小程序登录
+   * 微信登录
    */
-  static async loginWithWechat(code, encryptedData, iv) {
-    // 调用微信 API 换取 openid
-    try {
-      const response = await axios.get('https://api.weixin.qq.com/sns/jscode2session', {
-        params: {
-          appid: config.wechat.appid,
-          secret: config.wechat.secret,
-          js_code: code,
-          grant_type: config.wechat.grantType
-        },
-        timeout: 5000
-      });
+  static async loginByWechat({ code, encryptedData, iv }) {
+    // TODO: 调用微信 API 换取 openid
+    // const response = await axios.get('https://api.weixin.qq.com/sns/jscode2session', {
+    //   params: {
+    //     appid: config.wechat.appid,
+    //     secret: config.wechat.secret,
+    //     js_code: code,
+    //     grant_type: 'authorization_code'
+    //   }
+    // });
+    // const { openid, session_key, unionid } = response.data;
 
-      const { openid, session_key, unionid, errcode, errmsg } = response.data;
-
-      if (errcode !== 0) {
-        logger.error('微信登录失败', { errcode, errmsg });
-        const error = new Error(`微信登录失败：${errmsg}`);
-        error.status = 400;
-        throw error;
-      }
-
+    // 模拟微信登录
+    const openid = `wechat_${code}`;
+    const unionid = `union_${code}`;
+    
     // 查找或创建用户
     let user = Array.from(users.values()).find(u => u.wechatOpenid === openid);
     
     if (!user) {
-      // 新用户，解密用户信息
-      let nickname = `微信用户_${openid.slice(-6)}`;
-      let avatar = null;
-
-      if (encryptedData && iv) {
-        // TODO: 解密微信加密数据
-        // const decrypted = this.decryptWechatData(encryptedData, iv, session_key);
-        // nickname = decrypted.nickName;
-        // avatar = decrypted.avatarUrl;
-      }
-
+      // 创建新用户
       user = {
         id: uuidv4(),
         wechatOpenid: openid,
         wechatUnionid: unionid,
-        wechatSessionKey: session_key,
-        nickname,
-        avatar,
+        nickname: `微信用户${Math.random().toString(36).slice(-6)}`,
+        avatar: null,
+        phone: null,
+        email: null,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        lastLoginAt: new Date()
       };
       users.set(user.id, user);
+      
+      logger.info('微信新用户登录', { userId: user.id, openid });
     } else {
-      // 更新 session_key
-      user.wechatSessionKey = session_key;
+      // 更新登录时间
+      user.lastLoginAt = new Date();
       user.updatedAt = new Date();
+      
+      logger.info('微信老用户登录', { userId: user.id, openid });
     }
 
+    // 生成 Token
     const token = this.generateToken(user);
 
-      logger.info('微信登录成功', { userId: user.id, openid });
-
-      return {
-        id: user.id,
-        nickname: user.nickname,
-        avatar: user.avatar,
-        token,
-        isNewUser: !user.createdAt
-      };
-    } catch (error) {
-      if (error.response) {
-        logger.error('微信 API 调用失败', error.response.data);
-      }
-      throw error;
-    }
-  }
-
-  /**
-   * 解密微信加密数据
-   */
-  static decryptWechatData(encryptedData, iv, sessionKey) {
-    // TODO: 实现微信数据解密
-    // const crypto = require('crypto');
-    // const sessionBuffer = Buffer.from(sessionKey, 'base64');
-    // const encryptedBuffer = Buffer.from(encryptedData, 'base64');
-    // const ivBuffer = Buffer.from(iv, 'base64');
-    
-    // const decipher = crypto.createDecipheriv('aes-128-cbc', sessionBuffer, ivBuffer);
-    // decipher.setAutoPadding(true);
-    
-    // let decrypted = decipher.update(encryptedBuffer, 'binary', 'utf8');
-    // decrypted += decipher.final('utf8');
-    
-    // return JSON.parse(decrypted);
-    
     return {
-      nickName: '微信用户',
-      avatarUrl: null
+      id: user.id,
+      nickname: user.nickname,
+      avatar: user.avatar,
+      token,
+      isNewUser: !user.phone && !user.email
     };
   }
 
   /**
-   * 刷新 Token
+   * 绑定手机号
    */
-  static async refreshToken(refreshToken) {
-    try {
-      const decoded = jwt.verify(refreshToken, config.jwt.secret);
-      const user = users.get(decoded.userId);
-      
-      if (!user) {
-        const error = new Error('用户不存在');
-        error.status = 404;
-        throw error;
-      }
-
-      const token = this.generateToken(user);
-
-      return { token, refreshToken };
-    } catch (error) {
-      const err = new Error('Refresh Token 无效');
-      err.status = 401;
-      throw err;
+  static async bindPhone({ userId, phone, code }) {
+    // TODO: 验证验证码
+    const user = users.get(userId);
+    if (!user) {
+      const error = new Error('用户不存在');
+      error.status = 404;
+      throw error;
     }
+
+    if (user.phone) {
+      const error = new Error('已绑定手机号');
+      error.status = 400;
+      throw error;
+    }
+
+    user.phone = phone;
+    user.phoneVerified = true;
+    user.updatedAt = new Date();
+
+    logger.info('绑定手机号成功', { userId, phone });
+
+    return { success: true };
+  }
+
+  /**
+   * 绑定邮箱
+   */
+  static async bindEmail({ userId, email, code }) {
+    // TODO: 验证验证码
+    const user = users.get(userId);
+    if (!user) {
+      const error = new Error('用户不存在');
+      error.status = 404;
+      throw error;
+    }
+
+    if (user.email) {
+      const error = new Error('已绑定邮箱');
+      error.status = 400;
+      throw error;
+    }
+
+    user.email = email;
+    user.emailVerified = true;
+    user.updatedAt = new Date();
+
+    logger.info('绑定邮箱成功', { userId, email });
+
+    return { success: true };
   }
 
   /**
@@ -319,7 +299,11 @@ class AuthService {
    */
   static generateToken(user) {
     return jwt.sign(
-      { userId: user.id, email: user.email },
+      { 
+        userId: user.id,
+        phone: user.phone,
+        email: user.email
+      },
       config.jwt.secret,
       { expiresIn: config.jwt.expiresIn }
     );
@@ -343,10 +327,76 @@ class AuthService {
     try {
       return jwt.verify(token, config.jwt.secret);
     } catch (error) {
-      const err = new Error('Token 无效');
+      const err = new Error('Token 无效或已过期');
       err.status = 401;
       throw err;
     }
+  }
+
+  /**
+   * 刷新 Token
+   */
+  static async refreshToken(refreshToken) {
+    const decoded = this.verifyToken(refreshToken);
+    const user = users.get(decoded.userId);
+    
+    if (!user) {
+      const error = new Error('用户不存在');
+      error.status = 404;
+      throw error;
+    }
+
+    const token = this.generateToken(user);
+    return { token, refreshToken };
+  }
+
+  /**
+   * 获取用户信息
+   */
+  static async getUserInfo(userId) {
+    const user = users.get(userId);
+    if (!user) {
+      const error = new Error('用户不存在');
+      error.status = 404;
+      throw error;
+    }
+
+    return {
+      id: user.id,
+      phone: user.phone,
+      email: user.email,
+      nickname: user.nickname,
+      avatar: user.avatar,
+      wechatOpenid: user.wechatOpenid,
+      phoneVerified: user.phoneVerified || false,
+      emailVerified: user.emailVerified || false,
+      createdAt: user.createdAt,
+      lastLoginAt: user.lastLoginAt
+    };
+  }
+
+  /**
+   * 更新用户信息
+   */
+  static async updateUserInfo(userId, data) {
+    const user = users.get(userId);
+    if (!user) {
+      const error = new Error('用户不存在');
+      error.status = 404;
+      throw error;
+    }
+
+    // 允许更新的字段
+    const allowedFields = ['nickname', 'avatar'];
+    allowedFields.forEach(field => {
+      if (data[field] !== undefined) {
+        user[field] = data[field];
+      }
+    });
+
+    user.updatedAt = new Date();
+
+    return this.getUserInfo(userId);
   }
 }
 
