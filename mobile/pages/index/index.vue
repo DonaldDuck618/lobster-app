@@ -3,7 +3,7 @@
     <!-- 顶部欢迎区域 -->
     <view class="header">
       <view class="welcome-text">
-        <text class="title">🦞 龙虾 Agent</text>
+        <text class="title">🦞 能虾助手</text>
         <text class="subtitle">你的 AI 智能助手</text>
       </view>
     </view>
@@ -121,7 +121,7 @@ export default {
       messages: [
         {
           role: 'assistant',
-          content: '你好！我是龙虾汤，可以帮你处理 Excel、写周报、搜索报告等。有什么可以帮你的？',
+          content: '你好！我是能虾助手，可以帮你处理 Excel、写周报、搜索报告等。有什么可以帮你的？',
           time: this.getCurrentTime()
         }
       ],

@@ -25,7 +25,7 @@
 # .env 文件
 ALIYUN_ACCESS_KEY_ID=your_key_id
 ALIYUN_ACCESS_KEY_SECRET=your_key_secret
-ALIYUN_SMS_SIGN_NAME=龙虾 Agent
+ALIYUN_SMS_SIGN_NAME=能虾助手
 ALIYUN_SMS_REGISTER_TEMPLATE=SMS_280756062
 ALIYUN_SMS_LOGIN_TEMPLATE=SMS_280756063
 ```
@@ -336,6 +336,6 @@ REDIS_URL=redis://localhost:6379
 
 ---
 
-🦞 龙虾汤出品 | Day 1 完美收官！
+🦞 能虾助手出品 | Day 1 完美收官！
 
 *报告时间：2026-03-12 15:30*

@@ -1,7 +1,7 @@
 <script>
 export default {
   onLaunch: function() {
-    console.log('🦞 龙虾 Agent 启动')
+    console.log('🦞 能虾助手 启动')
     // 初始化检查
     this.checkUpdate()
   },

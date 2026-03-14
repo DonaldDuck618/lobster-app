@@ -1,5 +1,5 @@
 /**
- * 🦞 龙虾 Agent - Electron 主进程
+ * 🦞 能虾助手 - Electron 主进程
  * 支持 macOS / Windows / Linux
  */
 
@@ -81,7 +81,7 @@ function createTray() {
   // 托盘菜单
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: '打开龙虾 Agent',
+      label: '打开能虾助手',
       click: () => {
         if (mainWindow) {
           mainWindow.show();
@@ -115,7 +115,7 @@ function createTray() {
   });
 
   // 鼠标悬停提示
-  tray.setToolTip('龙虾 Agent - 你的 AI 智能助手');
+  tray.setToolTip('能虾助手 - 你的 AI 智能助手');
 }
 
 /**

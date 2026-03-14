@@ -1,13 +1,13 @@
 {
-  "name": "龙虾 Agent",
+  "name": "能虾助手",
   "appid": "__UNI__LOBSTER",
-  "description": "🦞 龙虾 Agent - 移动端 AI 智能助手，能真正干活的通用 Agent",
+  "description": "你的 AI 智能助手 - 支持文字、图片、语音",
   "versionName": "1.0.0",
   "versionCode": "100",
   "transformPx": false,
   "app-plus": {
     "usingComponents": true,
-    "nvueStyleCompiler": "uni-app",
+    "nvueCompiler": "uni-app",
     "compilerVersion": 3,
     "splashscreen": {
       "alwaysShowBeforeRender": true,
@@ -34,10 +34,7 @@
         ],
         "minSdkVersion": 21,
         "targetSdkVersion": 33,
-        "abiFilters": [
-          "armeabi-v7a",
-          "arm64-v8a"
-        ]
+        "abiFilters": ["armeabi-v7a", "arm64-v8a"]
       },
       "ios": {
         "dSYMs": false,
@@ -65,52 +62,12 @@
   "mp-weixin": {
     "appid": "wx63721a0ef442fb67",
     "setting": {
-      "urlCheck": true,
+      "urlCheck": false,
       "es6": true,
       "minified": true,
-      "newFeature": true,
-      "autoAudits": false,
-      "coverView": true,
-      "showShadowRootInWxml": false,
-      "scopeDataCheck": false,
-      "compileHotReLoad": false,
-      "lazyloadPlaceholderEnable": false,
-      "preloadBackgroundData": false,
-      "uglifyFileName": true,
-      "uploadWithSourceMap": false,
-      "useMultiFrameRuntime": true,
-      "useApiHook": true,
-      "useApiHostProcess": true,
-      "bundle": false,
-      "useIsolateContext": true,
-      "userConfirmedBundleSwitch": false,
-      "packNpmManually": false,
-      "packNpmRelationList": [],
-      "minifyWXSS": true,
-      "showES6CompileOption": false,
-      "minifyWXML": true,
-      "babelSetting": {
-        "ignore": [],
-        "disablePlugins": [],
-        "outputPath": ""
-      }
+      "newFeature": true
     },
-    "usingComponents": true,
-    "permission": {
-      "scope.userLocation": {
-        "desc": "你的位置信息将用于提供更好的本地化服务"
-      }
-    },
-    "requiredPrivateInfos": [
-      "chooseLocation",
-      "getLocation"
-    ],
-    "plugins": {},
-    "resizable": true,
-    "optimization": {
-      "subPackages": true,
-      "cacheTag": true
-    }
+    "usingComponents": true
   },
   "mp-alipay": {
     "usingComponents": true

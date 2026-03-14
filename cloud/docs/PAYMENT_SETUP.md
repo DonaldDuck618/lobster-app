@@ -1,4 +1,4 @@
-# 🦞 龙虾 Agent - 支付接入完整指南
+# 🦞 能虾助手 - 支付接入完整指南
 
 **版本**: v1.0  
 **更新日期**: 2026-03-12  
@@ -363,7 +363,7 @@ router.post('/wechat', authMiddleware, async (req, res) => {
   const order = await getOrder(orderId)
   
   const result = await payment.unifiedOrder({
-    body: `龙虾 Agent - ${order.planName}`,
+    body: `能虾助手 - ${order.planName}`,
     out_trade_no: orderId,
     total_fee: Math.round(order.amount * 100), // 单位：分
     spbill_create_ip: req.ip,
@@ -532,7 +532,7 @@ router.post('/alipay', authMiddleware, async (req, res) => {
     returnUrl: config.alipay.returnUrl,
     notifyUrl: config.alipay.notifyUrl,
     bizContent: {
-      subject: `龙虾 Agent - ${order.planName}`,
+      subject: `能虾助手 - ${order.planName}`,
       out_trade_no: orderId,
       total_amount: order.amount.toFixed(2),
       product_code: 'QUICK_WAP_WAY'
@@ -663,6 +663,6 @@ Day 5: 切换为官方支付
 
 ---
 
-🦞 龙虾汤出品 | 让 AI 真正为你工作！
+🦞 能虾助手出品 | 让 AI 真正为你工作！
 
 *最后更新：2026-03-12*

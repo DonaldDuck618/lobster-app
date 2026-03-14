@@ -10,7 +10,7 @@ export const WS_URL = 'ws://localhost:3000/ws'
 
 // 应用配置
 export const APP_CONFIG = {
-  name: '龙虾 Agent',
+  name: '能虾助手',
   version: '1.0.0',
   logo: '🦞'
 }

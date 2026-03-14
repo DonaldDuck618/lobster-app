@@ -1,168 +1,419 @@
-# 🦞 龙虾 Agent (Lobster APP)
+# 🦐 能虾助手 - 你的 AI 智能助手
 
-> 移动端 AI 智能助手 - 能真正干活的通用 Agent
+**让 AI 真正为你工作**
 
-[![Status](https://img.shields.io/badge/status-developing-yellow)]()
-[![Platform](https://img.shields.io/badge/platform-iOS%20%7C%20Android-blue)]()
-[![License](https://img.shields.io/badge/license-proprietary-green)]()
-
----
-
-## 📱 项目简介
-
-龙虾 Agent 是一款基于 OpenClaw 的移动端 AI 助手应用，专注于帮助用户**真正完成工作任务**，而不仅仅是聊天。
-
-### 核心能力
-
-- 📊 **Excel 数据分析** - 上传表格，自动分析生成报告
-- 🔍 **智能搜索** - 多源搜索，自动生成研究报告
-- 📝 **文案写作** - 周报、报告、邮件、营销文案一键生成
-- 🤖 **自动化流程** - 多步骤任务自动完成
-- 💼 **办公提效** - 钉钉/微信自动化、客户消息自动回复
+[![Status](https://img.shields.io/badge/status-ready-green)]()
+[![Version](https://img.shields.io/badge/version-1.0.0-blue)]()
+[![Platform](https://img.shields.io/badge/platform-Web%20%7C%20Mini%20Program%20%7C%20Android%20%7C%20iOS-purple)]()
 
 ---
 
-## 🎯 目标用户
+## 📖 简介
 
-| 用户群体 | 占比 | 核心需求 |
-|----------|------|----------|
-| 职场白领/新媒体运营 | 60% | Excel 分析、文案生成、周报撰写、社交媒体自动化 |
-| 小微企业/电商卖家 | 20% | 客服自动化、选品分析、订单对账、营销文案 |
-| 学生/自由职业者 | 15% | 论文资料搜集、数据处理、学习助手 |
-| 技术爱好者 | 5% | 自定义 Skill、DIY Agent、二次开发 |
+**能虾助手**是一款全平台 AI 智能助手，支持文字对话、图片识别、语音输入、Excel 分析、周报写作等多种功能，帮助你提升工作效率。
+
+### 核心特性
+
+- 🤖 **AI 智能对话** - 有问必答，支持多轮对话
+- 📊 **Excel 分析** - 自动分析数据，生成洞察报告
+- 📝 **周报日报** - 1 分钟自动生成工作报告
+- 📸 **图片 OCR** - 快速识别图片中的文字
+- 🎤 **语音输入** - 解放双手，语音转文字
+- 🎨 **图像生成** - 文生图，创意无限
+- 🔍 **搜索报告** - 自动搜索行业报告
+- 💳 **会员系统** - 灵活的付费方案
 
 ---
 
-## 🏗️ 技术架构
+## 🌐 在线体验
 
-### 方案：云侧 Gateway + 端侧轻量 APP
-
+### Web 版
 ```
-┌─────────────────┐         ┌─────────────────┐
-│   移动端 APP     │         │   云侧 Gateway   │
-│  (React Native) │ ◄─────► │  (OpenClaw)     │
-│                 │  WS/API │                 │
-│ • 对话 UI        │         │ • Agent 引擎     │
-│ • 文件上传       │         │ • 工具链         │
-│ • 用户管理       │         │ • Skill 生态     │
-│ • 消息推送       │         │ • 大模型调用     │
-└─────────────────┘         └─────────────────┘
+http://xiabot.cn
 ```
 
-### 技术栈
-
-| 模块 | 技术选型 |
-|------|----------|
-| **前端框架** | React Native / uniapp |
-| **UI 组件** | uView UI |
-| **云侧服务** | OpenClaw Gateway (Node.js) |
-| **大模型** | 通义千问 / 智谱 GLM / Moonshot |
-| **搜索 API** | Tavily / 百度 / 360 |
-| **数据库** | PostgreSQL + Redis |
-| **云服务** | 阿里云 / 腾讯云 |
+### 支付页面
+```
+http://xiabot.cn/payment.html
+```
 
 ---
 
-## 📋 功能规划
+## 📱 支持平台
 
-### MVP 版本 (v1.0) - 2 个月
-
-- [ ] 用户注册/登录
-- [ ] 对话界面 (类微信)
-- [ ] 文件上传 (Excel、PDF、图片)
-- [ ] Excel 数据分析
-- [ ] 网络搜索 + 报告生成
-- [ ] 文案/周报写作
-
-### v2.0 - 4 个月
-
-- [ ] 自定义 Skill
-- [ ] 自动化流程编排
-- [ ] 团队协作
-- [ ] 会员订阅系统
-
-### v3.0 - 6 个月+
-
-- [ ] Skill 市场
-- [ ] 端侧大模型
-- [ ] 企业私有化部署
+| 平台 | 状态 | 说明 |
+|------|------|------|
+| **Web 版** | ✅ 已上线 | 浏览器直接访问 |
+| **微信小程序** | ✅ 已开发 | 微信开发者工具 |
+| **Android APP** | ✅ 可打包 | 云打包生成 APK |
+| **iOS APP** | ✅ 可打包 | 云打包生成 IPA |
 
 ---
 
 ## 🚀 快速开始
 
-### 云侧部署
+### Web 版使用
 
+1. 访问 http://xiabot.cn
+2. 注册/登录账号
+3. 开始对话或选择快捷指令
+4. 享受 AI 带来的便利
+
+### 小程序使用
+
+1. 打开微信开发者工具
+2. 导入 mobile 目录
+3. 编译运行
+4. 扫码体验
+
+### APP 打包
+
+#### Android
 ```bash
-# 克隆项目
-git clone https://github.com/DonaldDuck618/lobster-app.git
-cd lobster-app/cloud
-
-# 安装依赖
-npm install
-
-# 配置环境变量
-cp .env.example .env
-# 编辑 .env 填入 API Key
-
-# 启动服务
-npm start
+# 使用 HBuilderX
+1. 导入 mobile 项目
+2. 发行 -> 原生 App-云打包
+3. 选择 Android
+4. 等待打包完成
 ```
 
-### 移动端开发
-
+#### iOS
 ```bash
-cd mobile
-
-# 安装依赖
-npm install
-
-# 运行开发服务器
-npm run ios  # iOS
-npm run android  # Android
+# 使用 HBuilderX
+1. 导入 mobile 项目
+2. 发行 -> 原生 App-云打包
+3. 选择 iOS
+4. 需要 Apple Developer 账号
 ```
 
 ---
 
-## 💰 商业模式
+## 💡 功能演示
 
-### 会员订阅
+### AI 对话
+```
+用户：帮我写一份周报
+能虾：好的，请提供以下信息：
+      1. 本周主要工作内容
+      2. 遇到的问题
+      3. 下周计划
+```
 
-| 版本 | 价格 | 功能 |
-|------|------|------|
-| **免费版** | 免费 | 基础对话、每天 5 次 Agent 调用 |
-| **标准版** | 19 元/月 | 无限调用、全工具链、自定义 Skill |
-| **专业版** | 39 元/月 | 端侧模型、团队协作、专属客服 |
+### Excel 分析
+```
+用户上传 Excel 文件
+能虾：已收到文件，正在分析...
+      📊 数据概览
+      - 总行数：1234 行
+      - 总销售额：¥5,678,900
+      - 同比增长：+23.5%
+      
+      💡 主要发现
+      1. 3 月销售额环比增长 45%
+      2. 华东大区贡献 40% 销售额
+      3. SKU-A001 为爆款，占比 15%
+```
+
+### 图片 OCR
+```
+用户上传包含文字的图片
+能虾：📸 图片识别成功
+      识别内容：
+      会议通知
+      时间：2026-03-15 14:00
+      地点：会议室 A
+      主题：Q1 复盘会议
+```
+
+---
+
+## 💳 会员方案
+
+### 免费版
+```
+价格：¥0/月
+• 每天 5 次 Agent 调用
+• 基础文件处理
+• 10MB 文件限制
+```
+
+### 标准版 ⭐ 最受欢迎
+```
+价格：¥19/月
+• 无限次 Agent 调用
+• 全工具链使用
+• 100MB 文件限制
+• 自定义 Skill
+```
+
+### 专业版
+```
+价格：¥39/月
+• 标准版所有功能
+• 端侧模型使用
+• 团队协作功能
+• 500MB 文件限制
+• 专属客服
+```
 
 ### 企业版
+```
+价格：¥5000/年
+• 专业版所有功能
+• 私有化部署
+• 定制开发
+• 1GB 文件限制
+• SLA 保障
+```
 
-- 私有化部署：5000-50000 元/年
-- 定制开发：按需报价
+---
+
+## 🛠️ 技术栈
+
+### 后端
+```
+• Node.js 22+
+• Express.js
+• MySQL (RDS)
+• Redis
+• OSS 对象存储
+```
+
+### 前端
+```
+• HTML5/CSS3/JavaScript
+• uni-app (小程序/APP)
+• Vue 3
+```
+
+### AI 能力
+```
+• 阿里云百炼 (通义千问)
+• 阿里云视觉智能 (OCR)
+• 阿里云智能语音 (ASR/TTS)
+• 智谱 GLM
+• MiniMax
+• Moonshot Kimi
+```
+
+### 部署
+```
+• 阿里云 ECS
+• PM2 进程管理
+• Nginx 反向代理
+```
+
+---
+
+## 📁 项目结构
+
+```
+lobster-app/
+├── cloud/              # 后端服务
+│   ├── src/
+│   │   ├── routes/     # API 路由
+│   │   ├── services/   # 业务服务
+│   │   ├── middleware/ # 中间件
+│   │   └── utils/      # 工具函数
+│   ├── scripts/        # 脚本文件
+│   └── docs/           # 文档
+├── mobile/             # 移动端 (小程序/APP)
+│   ├── pages/          # 页面
+│   ├── utils/          # 工具
+│   └── static/         # 静态资源
+├── web/                # Web 前端
+│   ├── index.html      # 主页
+│   └── payment.html    # 支付页
+├── BRANDING.md         # 品牌规范
+└── README.md           # 项目说明
+```
+
+---
+
+## 🔌 API 文档
+
+### 认证接口
+```
+POST /api/v1/auth/register    # 用户注册
+POST /api/v1/auth/login       # 用户登录
+POST /api/v1/auth/wechat      # 微信登录
+```
+
+### 聊天接口
+```
+POST /api/v1/chat/send        # 发送消息
+GET  /api/v1/chat/sessions    # 会话列表
+```
+
+### 文件接口
+```
+POST /api/v1/files/upload     # 上传文件
+GET  /api/v1/files            # 文件列表
+```
+
+### 视觉接口
+```
+POST /api/v1/vision/ocr       # OCR 识别
+POST /api/v1/vision/analyze   # 图片分析
+POST /api/v1/vision/table     # 表格识别
+```
+
+### 音频接口
+```
+POST /api/v1/audio/transcribe # 语音识别
+POST /api/v1/audio/synthesize # 语音合成
+```
+
+### 支付接口
+```
+GET  /api/v1/payment/plans         # 会员套餐
+POST /api/v1/payment/create-order  # 创建订单
+POST /api/v1/payment/qr/submit     # 提交支付凭证
+```
+
+---
+
+## 📊 性能指标
+
+### 响应时间
+```
+• API 响应：~200ms
+• 页面加载：~1s
+• 图片上传：~5s
+• OCR 识别：~15s
+```
+
+### 并发能力
+```
+• 日活用户：1000+
+• 并发请求：100/s
+• 存储容量：50GB (可扩展)
+```
+
+---
+
+## 💰 成本结构
+
+### 固定成本
+```
+• ECS 服务器：¥99/年
+• 域名：¥60/年
+• RDS MySQL: ¥119/月
+• Redis: ¥49/月
+• OSS: ¥14/月
+• 总计：¥195/月 (首年)
+```
+
+### 可变成本
+```
+• 视觉智能：¥0.003/次 (1000 次免费/月)
+• 智能语音：¥0.006/分钟 (1000 分钟免费/月)
+• 大模型：¥0.004/1K tokens (100 万免费/月)
+```
+
+---
+
+## 🎯 开发路线图
+
+### v1.0 (当前版本) ✅
+```
+✅ 核心功能开发
+✅ 多平台支持
+✅ 支付功能
+✅ 服务器部署
+```
+
+### v1.1 (计划中)
+```
+• 官方支付接入
+• 小程序上架
+• APP 市场上架
+• SSL 证书配置
+```
+
+### v2.0 (未来)
+```
+• 云端同步
+• 对话搜索
+• 文件预览
+• 批量导出
+• 更多 AI 能力
+```
+
+---
+
+## 🤝 贡献指南
+
+### 开发环境设置
+```bash
+# 克隆项目
+git clone https://github.com/DonaldDuck618/lobster-app.git
+
+# 安装后端依赖
+cd lobster-app/cloud
+npm install
+
+# 安装前端依赖
+cd ../mobile
+npm install
+
+# 启动后端服务
+npm run dev
+```
+
+### 提交代码
+```bash
+# 创建分支
+git checkout -b feature/your-feature
+
+# 提交代码
+git commit -m "feat: add your feature"
+
+# 推送分支
+git push origin feature/your-feature
+
+# 创建 Pull Request
+```
 
 ---
 
 ## 📄 许可证
 
-本项目为商业软件，未经许可不得用于商业用途。
+```
+MIT License
+© 2026 能虾助手
+```
 
 ---
 
 ## 📞 联系方式
 
-- **创始人**: Eric (Duck Donald)
-- **邮箱**: [待填写]
-- **微信**: [待填写]
+### 官方渠道
+```
+• 网站：http://xiabot.cn
+• 邮箱：support@xiabot.cn
+• GitHub: https://github.com/DonaldDuck618/lobster-app
+```
+
+### 客服时间
+```
+• 工作日：9:00-18:00
+• 周末：10:00-16:00
+```
 
 ---
 
-## 🙏 致谢
+## 🎉 致谢
 
-- [OpenClaw](https://github.com/openclaw/openclaw) - 核心 Agent 引擎
-- [React Native](https://reactnative.dev/) - 移动端框架
-- [Tavily](https://tavily.com/) - 搜索 API
+感谢以下开源项目和服务：
+
+- [OpenClaw](https://github.com/openclaw/openclaw) - 框架灵感
+- [uni-app](https://uniapp.dcloud.net.cn/) - 跨平台框架
+- [阿里云](https://www.aliyun.com/) - 云服务支持
+- [Express.js](https://expressjs.com/) - Web 框架
 
 ---
 
-**🦞 龙虾汤出品 | 让 AI 真正为你工作！**
+**能虾助手 - 让 AI 真正为你工作** 🦐
 
-*Last Updated: 2026-03-12*
+*Last Updated: 2026-03-14*

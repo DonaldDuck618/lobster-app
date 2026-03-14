@@ -87,7 +87,7 @@ module.exports = {
     accessKeyId: process.env.ALIYUN_ACCESS_KEY_ID,
     accessKeySecret: process.env.ALIYUN_ACCESS_KEY_SECRET,
     sms: {
-      signName: process.env.ALIYUN_SMS_SIGN_NAME || '龙虾 Agent',
+      signName: process.env.ALIYUN_SMS_SIGN_NAME || '能虾助手',
       registerTemplate: process.env.ALIYUN_SMS_REGISTER_TEMPLATE || 'SMS_280756062',
       loginTemplate: process.env.ALIYUN_SMS_LOGIN_TEMPLATE || 'SMS_280756063'
     }

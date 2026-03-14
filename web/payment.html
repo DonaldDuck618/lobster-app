@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>💳 会员中心 - 能虾助手</title>
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --bg-color: #f5f5f5;
+      --card-bg: white;
+      --text-color: #333;
+      --text-secondary: #999;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #1a1a2e;
+      --card-bg: #16213e;
+      --text-color: #eee;
+      --text-secondary: #888;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      background: var(--primary-gradient);
+      min-height: 100vh;
+      padding: 20px;
+      color: var(--text-color);
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* 头部 */
+    .header {
+      text-align: center;
+      color: white;
+      padding: 30px 20px;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    /* 当前会员卡片 */
+    .current-plan {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+
+    .plan-badge {
+      display: inline-block;
+      padding: 8px 20px;
+      background: var(--primary-gradient);
+      color: white;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+
+    .current-plan h2 {
+      font-size: 24px;
+      margin-bottom: 10px;
+      color: var(--text-color);
+    }
+
+    .current-plan .price {
+      font-size: 36px;
+      font-weight: bold;
+      color: var(--primary-gradient);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 15px;
+    }
+
+    .current-plan .expiry {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #e0e0e0;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--primary-gradient);
+      border-radius: 4px;
+      transition: width 0.3s;
+    }
+
+    .progress-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* 会员套餐 */
+    .plans-section {
+      margin-bottom: 30px;
+    }
+
+    .plans-section h2 {
+      color: white;
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 24px;
+    }
+
+    .plans-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .plan-card {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      transition: transform 0.3s, box-shadow 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .plan-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+    }
+
+    .plan-card.popular::before {
+      content: '⭐ 最受欢迎';
+      position: absolute;
+      top: 15px;
+      right: -30px;
+      background: var(--warning);
+      color: white;
+      padding: 5px 40px;
+      font-size: 12px;
+      font-weight: bold;
+      transform: rotate(45deg);
+    }
+
+    .plan-card h3 {
+      font-size: 20px;
+      margin-bottom: 10px;
+      color: var(--text-color);
+    }
+
+    .plan-card .price {
+      font-size: 32px;
+      font-weight: bold;
+      color: var(--primary-gradient);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 15px;
+    }
+
+    .plan-card .price span {
+      font-size: 14px;
+      color: var(--text-secondary);
+      -webkit-text-fill-color: var(--text-secondary);
+    }
+
+    .plan-features {
+      list-style: none;
+      margin-bottom: 20px;
+    }
+
+    .plan-features li {
+      padding: 8px 0;
+      color: var(--text-color);
+      font-size: 14px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .plan-features li:last-child {
+      border-bottom: none;
+    }
+
+    .plan-features li::before {
+      content: '✅';
+      margin-right: 8px;
+    }
+
+    .plan-btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .plan-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .plan-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* 支付方式 */
+    .payment-section {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      display: none;
+    }
+
+    .payment-section h2 {
+      color: var(--text-color);
+      margin-bottom: 20px;
+      font-size: 20px;
+    }
+
+    .payment-methods {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .payment-method {
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 15px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .payment-method:hover,
+    .payment-method.selected {
+      border-color: #667eea;
+      background: rgba(102, 126, 234, 0.1);
+    }
+
+    .payment-method img {
+      width: 60px;
+      height: 60px;
+      margin-bottom: 10px;
+    }
+
+    .payment-method p {
+      font-size: 14px;
+      color: var(--text-color);
+    }
+
+    .qr-code {
+      text-align: center;
+      padding: 20px;
+      background: #f5f5f5;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+
+    .qr-code img {
+      width: 200px;
+      height: 200px;
+      margin-bottom: 10px;
+    }
+
+    .qr-code p {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .upload-section {
+      margin-top: 20px;
+    }
+
+    .upload-btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--primary-gradient);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .upload-btn:hover {
+      transform: scale(1.05);
+    }
+
+    /* 支付记录 */
+    .history-section {
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .history-section h2 {
+      color: var(--text-color);
+      margin-bottom: 20px;
+      font-size: 20px;
+    }
+
+    .history-list {
+      list-style: none;
+    }
+
+    .history-item {
+      padding: 15px;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .history-item:last-child {
+      border-bottom: none;
+    }
+
+    .history-info h3 {
+      font-size: 16px;
+      color: var(--text-color);
+      margin-bottom: 5px;
+    }
+
+    .history-info p {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .history-status {
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .status-pending {
+      background: var(--warning);
+      color: white;
+    }
+
+    .status-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .status-failed {
+      background: var(--danger);
+      color: white;
+    }
+
+    /* 响应式 */
+    @media (max-width: 768px) {
+      body { padding: 0; }
+      .header { padding: 20px 15px; }
+      .current-plan, .plans-section, .payment-section, .history-section {
+        border-radius: 0;
+        margin-bottom: 0;
+      }
+      .plans-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* 隐藏文件输入 */
+    .file-input { display: none; }
+
+    /* 主题切换 */
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 50px;
+      height: 50px;
+      background: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <!-- 主题切换 -->
+  <div class="theme-toggle" onclick="toggleTheme()">🌓</div>
+
+  <div class="container">
+    <!-- 头部 -->
+    <div class="header">
+      <h1>💳 会员中心</h1>
+      <p>选择适合你的会员套餐，享受更多 AI 功能</p>
+    </div>
+
+    <!-- 当前会员 -->
+    <div class="current-plan">
+      <div class="plan-badge" id="currentBadge">免费版</div>
+      <h2 id="currentPlanName">免费会员</h2>
+      <div class="price" id="currentPrice">¥0</div>
+      <div class="expiry" id="currentExpiry">永久有效</div>
+      
+      <div class="progress-bar">
+        <div class="progress-fill" id="usageProgress" style="width: 20%"></div>
+      </div>
+      <div class="progress-text" id="usageText">本月已用 20/100 次</div>
+    </div>
+
+    <!-- 会员套餐 -->
+    <div class="plans-section">
+      <h2>选择会员套餐</h2>
+      <div class="plans-grid">
+        <!-- 免费版 -->
+        <div class="plan-card">
+          <h3>免费版</h3>
+          <div class="price">¥0<span>/月</span></div>
+          <ul class="plan-features">
+            <li>每天 5 次 Agent 调用</li>
+            <li>基础文件处理</li>
+            <li>10MB 文件限制</li>
+            <li>基础对话功能</li>
+          </ul>
+          <button class="plan-btn" disabled>当前套餐</button>
+        </div>
+
+        <!-- 标准版 -->
+        <div class="plan-card popular">
+          <h3>标准版</h3>
+          <div class="price">¥19<span>/月</span></div>
+          <ul class="plan-features">
+            <li>无限次 Agent 调用</li>
+            <li>全工具链使用</li>
+            <li>100MB 文件限制</li>
+            <li>自定义 Skill</li>
+            <li>优先支持</li>
+          </ul>
+          <button class="plan-btn" onclick="selectPlan('standard')">立即开通</button>
+        </div>
+
+        <!-- 专业版 -->
+        <div class="plan-card">
+          <h3>专业版</h3>
+          <div class="price">¥39<span>/月</span></div>
+          <ul class="plan-features">
+            <li>标准版所有功能</li>
+            <li>端侧模型使用</li>
+            <li>团队协作功能</li>
+            <li>500MB 文件限制</li>
+            <li>专属客服</li>
+            <li>高级自动化</li>
+          </ul>
+          <button class="plan-btn" onclick="selectPlan('pro')">立即开通</button>
+        </div>
+
+        <!-- 企业版 -->
+        <div class="plan-card">
+          <h3>企业版</h3>
+          <div class="price">¥5000<span>/年</span></div>
+          <ul class="plan-features">
+            <li>专业版所有功能</li>
+            <li>私有化部署</li>
+            <li>定制开发</li>
+            <li>1GB 文件限制</li>
+            <li>专属客户经理</li>
+            <li>SLA 保障</li>
+          </ul>
+          <button class="plan-btn" onclick="selectPlan('enterprise')">联系销售</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 支付方式 -->
+    <div class="payment-section" id="paymentSection">
+      <h2 id="paymentTitle">选择支付方式</h2>
+      
+      <div class="payment-methods">
+        <div class="payment-method" onclick="selectPayment('wechat')">
+          <div style="font-size: 40px; margin-bottom: 10px;">💚</div>
+          <p>微信支付</p>
+        </div>
+        <div class="payment-method" onclick="selectPayment('alipay')">
+          <div style="font-size: 40px; margin-bottom: 10px;">💙</div>
+          <p>支付宝</p>
+        </div>
+      </div>
+
+      <div class="qr-code" id="qrCode" style="display: none;">
+        <div id="qrImage" style="font-size: 150px; margin-bottom: 10px;">📱</div>
+        <p>请使用<span id="paymentMethodText"></span>扫码支付</p>
+        <p style="margin-top: 10px; color: var(--warning);">⚠️ 支付后请上传截图</p>
+      </div>
+
+      <div class="upload-section">
+        <input type="file" class="file-input" id="screenshotInput" accept="image/*" onchange="handleScreenshot(event)">
+        <button class="upload-btn" onclick="document.getElementById('screenshotInput').click()">
+          📸 上传支付截图
+        </button>
+        <p style="text-align: center; margin-top: 10px; color: var(--text-secondary); font-size: 13px;">
+          上传后我们将在 24 小时内审核并开通会员
+        </p>
+      </div>
+    </div>
+
+    <!-- 支付记录 -->
+    <div class="history-section">
+      <h2>💰 支付记录</h2>
+      <ul class="history-list" id="historyList">
+        <li class="history-item">
+          <div class="history-info">
+            <h3>标准版会员</h3>
+            <p>2026-03-10 14:30</p>
+          </div>
+          <div class="history-status status-success">已完成</div>
+        </li>
+        <li class="history-item">
+          <div class="history-info">
+            <h3>专业版会员</h3>
+            <p>2026-03-08 09:15</p>
+          </div>
+          <div class="history-status status-success">已完成</div>
+        </li>
+        <li class="history-item">
+          <div class="history-info">
+            <h3>标准版会员</h3>
+            <p>2026-03-05 16:20</p>
+          </div>
+          <div class="history-status status-pending">审核中</div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    let selectedPlan = null;
+    let selectedPayment = null;
+
+    // 页面加载
+    window.onload = () => {
+      loadCurrentPlan();
+      loadTheme();
+    };
+
+    // 加载当前会员
+    function loadCurrentPlan() {
+      const plan = JSON.parse(localStorage.getItem('lobster_plan') || '{"type":"free","name":"免费会员","price":0,"expiry":"永久有效","usage":20,"limit":100}');
+      document.getElementById('currentBadge').textContent = getBadgeText(plan.type);
+      document.getElementById('currentPlanName').textContent = plan.name;
+      document.getElementById('currentPrice').textContent = '¥' + plan.price;
+      document.getElementById('currentExpiry').textContent = plan.expiry;
+      document.getElementById('usageProgress').style.width = (plan.usage / plan.limit * 100) + '%';
+      document.getElementById('usageText').textContent = '本月已用 ' + plan.usage + '/' + plan.limit + ' 次';
+    }
+
+    function getBadgeText(type) {
+      const badges = {
+        free: '免费版',
+        standard: '标准版 ⭐',
+        pro: '专业版 💎',
+        enterprise: '企业版 🏢'
+      };
+      return badges[type] || '免费版';
+    }
+
+    // 选择套餐
+    function selectPlan(planType) {
+      selectedPlan = planType;
+      document.getElementById('paymentSection').style.display = 'block';
+      document.getElementById('paymentTitle').textContent = '支付 ¥' + getPrice(planType);
+      document.getElementById('qrCode').style.display = 'none';
+      
+      // 滚动到支付区域
+      document.getElementById('paymentSection').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function getPrice(type) {
+      const prices = {
+        standard: '19',
+        pro: '39',
+        enterprise: '5000'
+      };
+      return prices[type] || '0';
+    }
+
+    // 选择支付方式
+    function selectPayment(method) {
+      selectedPayment = method;
+      
+      // 更新选中状态
+      document.querySelectorAll('.payment-method').forEach(el => {
+        el.classList.remove('selected');
+      });
+      event.target.closest('.payment-method').classList.add('selected');
+      
+      // 显示二维码
+      document.getElementById('qrCode').style.display = 'block';
+      document.getElementById('paymentMethodText').textContent = method === 'wechat' ? '微信' : '支付宝';
+      document.getElementById('qrImage').textContent = method === 'wechat' ? '💚' : '💙';
+    }
+
+    // 处理截图上传
+    function handleScreenshot(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      if (!selectedPlan || !selectedPayment) {
+        alert('请先选择套餐和支付方式');
+        return;
+      }
+      
+      // 模拟上传
+      alert('✅ 截图已上传！\n\n我们将在 24 小时内审核并开通会员。\n审核结果将通过站内信通知。');
+      
+      // 添加到历史记录
+      addHistoryRecord(selectedPlan);
+      
+      // 隐藏支付区域
+      document.getElementById('paymentSection').style.display = 'none';
+      
+      // 重置选择
+      selectedPlan = null;
+      selectedPayment = null;
+    }
+
+    // 添加历史记录
+    function addHistoryRecord(planType) {
+      const historyList = document.getElementById('historyList');
+      const now = new Date();
+      const timeStr = now.toLocaleString('zh-CN');
+      
+      const li = document.createElement('li');
+      li.className = 'history-item';
+      li.innerHTML = `
+        <div class="history-info">
+          <h3>${getPlanName(planType)}</h3>
+          <p>${timeStr}</p>
+        </div>
+        <div class="history-status status-pending">审核中</div>
+      `;
+      
+      historyList.insertBefore(li, historyList.firstChild);
+    }
+
+    function getPlanName(type) {
+      const names = {
+        standard: '标准版会员',
+        pro: '专业版会员',
+        enterprise: '企业版会员'
+      };
+      return names[type] || '会员';
+    }
+
+    // 主题切换
+    function toggleTheme() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      localStorage.setItem('lobster_theme', isDark ? 'light' : 'dark');
+    }
+
+    function loadTheme() {
+      const theme = localStorage.getItem('lobster_theme') || 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+  </script>
+</body>
+</html>

@@ -26,7 +26,7 @@ router.use('/payment', paymentRoutes);
 // API 文档
 router.get('/', (req, res) => {
   res.json({
-    name: '🦞 龙虾 Agent API',
+    name: '🦞 能虾助手 API',
     version: '1.0.0',
     endpoints: {
       auth: '/api/v1/auth',
