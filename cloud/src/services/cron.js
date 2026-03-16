@@ -4,6 +4,7 @@
 
 const cron = require('node-cron');
 const logger = require('../utils/logger');
+const OpenClawLearner = require('../../scripts/learn-openclaw');
 
 const jobs = new Map();
 
@@ -30,6 +31,28 @@ function initializeCronJobs() {
   });
 
   jobs.set('health-check', healthCheckJob);
+
+  // 任务 3: OpenClaw 学习 (每天早上 8:00)
+  const learnOpenClawJob = cron.schedule('0 8 * * *', async () => {
+    logger.info('🦞 开始 OpenClaw 学习之旅...');
+    
+    try {
+      const learner = new OpenClawLearner();
+      const result = await learner.learn();
+      
+      logger.info('✅ OpenClaw 学习完成', {
+        newFeatures: result.newFeatures,
+        improvements: result.improvements,
+        reportFile: result.filePath
+      });
+    } catch (error) {
+      logger.error('❌ OpenClaw 学习失败', error);
+    }
+  }, {
+    timezone: 'Asia/Shanghai'
+  });
+
+  jobs.set('learn-openclaw', learnOpenClawJob);
 
   logger.info('定时任务初始化完成', { count: jobs.size });
 }
