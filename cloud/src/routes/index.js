@@ -42,3 +42,23 @@ router.get('/', (req, res) => {
 });
 
 module.exports = router;
+
+// 更新 API 文档，添加 tools 端点详情
+router.get('/', (req, res) => {
+  res.json({
+    name: '🦞 龙虾 Agent API',
+    version: '1.0.0',
+    endpoints: {
+      auth: '/api/v1/auth',
+      chat: '/api/v1/chat',
+      files: '/api/v1/files',
+      users: '/api/v1/users',
+      tools: '/api/v1/tools',
+      cron: '/api/v1/cron',
+      payment: '/api/v1/payment',
+      vision: '/api/v1/vision',
+      audio: '/api/v1/audio'
+    },
+    docs: 'https://github.com/DonaldDuck618/lobster-app'
+  });
+});
