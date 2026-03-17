@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#667eea">
+  <title>能虾助手 - 让 AI 真正为你工作</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; background: #fff; min-height: 100vh; overflow-x: hidden; }
+    
+    /* 登录弹窗 */
+    .login-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+    .login-modal.hidden { display: none; }
+    .login-box { background: white; border-radius: 20px; padding: 30px 20px; width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
+    .login-title { font-size: 24px; font-weight: 600; text-align: center; margin-bottom: 30px; color: #1a1a1a; }
+    .login-input { width: 100%; padding: 14px 18px; border: 2px solid #e5e5e5; border-radius: 12px; font-size: 16px; margin-bottom: 16px; transition: border-color 0.2s; -webkit-appearance: none; }
+    .login-input:focus { outline: none; border-color: #667eea; }
+    .code-input-group { display: flex; gap: 10px; margin-bottom: 16px; }
+    .code-input-group input { flex: 1; margin-bottom: 0; }
+    .code-input-group button { padding: 14px 20px; background: #f5f5f5; border: none; border-radius: 12px; cursor: pointer; font-size: 14px; white-space: nowrap; transition: background 0.2s; min-width: 100px; }
+    .code-input-group button:hover { background: #e5e5e5; }
+    .code-input-group button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .login-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: transform 0.2s; }
+    .login-btn:active { transform: scale(0.98); }
+    .login-footer { text-align: center; margin-top: 20px; color: #666; font-size: 14px; }
+    .login-footer a { color: #667eea; cursor: pointer; text-decoration: none; }
+    .close-btn { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 28px; cursor: pointer; color: #999; padding: 5px; }
+    
+    /* 主界面 */
+    .app-container { display: flex; height: 100vh; height: 100dvh; }
+    
+    /* 侧边栏 */
+    .sidebar { width: 280px; background: #fafafa; border-right: 1px solid #f0f0f0; display: flex; flex-direction: column; padding: 16px; position: relative; }
+    .logo-area { display: flex; align-items: center; gap: 12px; padding: 12px; margin-bottom: 20px; }
+    .logo-img { width: 40px; height: 40px; border-radius: 10px; }
+    .logo-text { font-size: 18px; font-weight: 600; color: #1a1a1a; }
+    .new-chat-btn { width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 20px; transition: transform 0.2s; min-height: 44px; }
+    .new-chat-btn:active { transform: scale(0.98); }
+    .history-section { flex: 1; overflow-y: auto; }
+    .history-title { font-size: 12px; color: #999; margin-bottom: 12px; padding: 0 8px; }
+    .history-item { padding: 12px; border-radius: 8px; cursor: pointer; color: #333; margin-bottom: 4px; transition: background 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 44px; display: flex; align-items: center; }
+    .history-item:active { background: #f0f0f0; }
+    .history-item.active { background: #e8eaff; color: #667eea; }
+    .user-area { padding-top: 16px; border-top: 1px solid #f0f0f0; display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 12px; border-radius: 8px; transition: background 0.2s; min-height: 44px; }
+    .user-area:active { background: #f0f0f0; }
+    .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px; flex-shrink: 0; }
+    .user-name { flex: 1; font-size: 14px; color: #333; overflow: hidden; text-overflow: ellipsis; }
+    
+    /* 侧边栏遮罩 */
+    .sidebar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 99; display: none; }
+    .sidebar-overlay.show { display: block; }
+    
+    /* 移动端菜单按钮 */
+    .menu-toggle { display: none; align-items: center; padding: 12px 16px; cursor: pointer; background: none; border: none; font-size: 20px; color: #666; position: fixed; top: 0; left: 0; z-index: 50; min-height: 44px; min-width: 44px; }
+    .close-sidebar { position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 28px; cursor: pointer; color: #999; padding: 8px; min-height: 44px; min-width: 44px; display: flex; align-items: center; justify-content: center; }
+    
+    /* 主内容区 */
+    .main-content { flex: 1; display: flex; flex-direction: column; background: #fff; position: relative; overflow: hidden; }
+    
+    /* 欢迎界面 */
+    .welcome-container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; overflow-y: auto; }
+    .welcome-logo { width: 100px; height: 100px; border-radius: 20px; box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3); margin-bottom: 24px; }
+    .welcome-title { font-size: 32px; font-weight: 600; color: #1a1a1a; margin-bottom: 12px; text-align: center; }
+    .welcome-subtitle { font-size: 16px; color: #666; margin-bottom: 48px; text-align: center; }
+    .suggestion-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%; max-width: 700px; }
+    .suggestion-card { background: #fafafa; border: 1px solid #f0f0f0; border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.2s; min-height: 80px; display: flex; flex-direction: column; justify-content: center; }
+    .suggestion-card:active { background: #f5f5f5; border-color: #667eea; transform: scale(0.98); }
+    .suggestion-icon { font-size: 24px; margin-bottom: 8px; }
+    .suggestion-text { font-size: 14px; color: #333; line-height: 1.5; }
+    
+    /* 聊天界面 */
+    .chat-container { flex: 1; display: flex; flex-direction: column; }
+    .messages-container { flex: 1; overflow-y: auto; padding: 40px 20px; -webkit-overflow-scrolling: touch; }
+    .message-wrapper { display: flex; gap: 16px; margin-bottom: 24px; max-width: 800px; margin-left: auto; margin-right: auto; }
+    .message-wrapper.user { flex-direction: row-reverse; }
+    .message-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-weight: 600; font-size: 14px; }
+    .message-wrapper.assistant .message-avatar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+    .message-wrapper.user .message-avatar { background: #f0f0f0; color: #666; }
+    .message-bubble { max-width: 70%; padding: 14px 18px; border-radius: 16px; line-height: 1.6; font-size: 15px; word-wrap: break-word; }
+    .message-wrapper.assistant .message-bubble { background: #fafafa; color: #1a1a1a; border-bottom-left-radius: 4px; }
+    .message-wrapper.user .message-bubble { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-bottom-right-radius: 4px; }
+    
+    /* 输入区 */
+    .input-area { padding: 16px; border-top: 1px solid #f0f0f0; background: #fff; padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+    .input-wrapper { max-width: 800px; margin: 0 auto; position: relative; }
+    .toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+    .tool-btn { padding: 8px 14px; background: #f5f5f5; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; color: #666; transition: all 0.2s; display: flex; align-items: center; gap: 6px; min-height: 36px; }
+    .tool-btn:active { background: #e5e5e5; }
+    .input-box { background: #fafafa; border: 1px solid #f0f0f0; border-radius: 16px; padding: 12px 60px 12px 16px; display: flex; align-items: flex-end; transition: border-color 0.2s; }
+    .input-box:focus-within { border-color: #667eea; background: #fff; }
+    .input-box textarea { flex: 1; border: none; outline: none; background: transparent; font-size: 16px; resize: none; max-height: 150px; font-family: inherit; line-height: 1.5; min-height: 24px; -webkit-appearance: none; }
+    .input-box textarea::placeholder { color: #999; }
+    .send-btn { position: absolute; right: 10px; bottom: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; width: 40px; height: 40px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; min-width: 44px; min-height: 44px; }
+    .send-btn:active { transform: scale(0.95); }
+    .send-btn svg { width: 20px; height: 20px; fill: white; }
+    
+    /* 移动端登录按钮 */
+    .mobile-login-btn { position: fixed; top: 12px; right: 12px; z-index: 50; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 500; cursor: pointer; min-height: 44px; display: none; }
+    .mobile-login-btn:active { transform: scale(0.95); }
+    
+    /* 响应式 */
+    @media (max-width: 768px) {
+      .sidebar { position: fixed; left: -280px; top: 0; bottom: 0; width: 280px; background: #fafafa; z-index: 100; transition: left 0.3s ease; box-shadow: 2px 0 20px rgba(0,0,0,0.1); }
+      .sidebar.open { left: 0; }
+      .menu-toggle { display: flex; }
+      .mobile-login-btn { display: block; }
+      .messages-container { padding: 70px 16px 16px; }
+      .input-area { padding: 12px 16px; }
+      .suggestion-grid { grid-template-columns: 1fr; }
+      .message-bubble { max-width: 85%; }
+      .welcome-container { padding: 80px 20px 20px; }
+      .welcome-logo { width: 80px; height: 80px; }
+      .welcome-title { font-size: 24px; }
+      .welcome-subtitle { font-size: 14px; }
+      .toolbar { display: none; }
+      .login-box { margin: 0; padding: 30px 20px; border-radius: 20px; }
+      .login-title { font-size: 20px; }
+    }
+    
+    /* 触摸优化 */
+    @media (hover: none) and (pointer: coarse) {
+      .suggestion-card, .history-item, .tool-btn, .login-btn, button, a { min-height: 44px; }
+    }
+    
+    /* 安全区域适配 */
+    @supports (padding: max(0px)) {
+      .input-area { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+      .sidebar { padding-left: max(16px, env(safe-area-inset-left)); }
+    }
+  </style>
+</head>
+<body>
+  <!-- 登录弹窗 -->
+  <div class="login-modal hidden" id="loginModal">
+    <div class="login-box" style="position: relative;">
+      <button class="close-btn" onclick="closeLogin()">&times;</button>
+      <h2 class="login-title" id="loginTitle">登录能虾助手</h2>
+      <input type="tel" class="login-input" id="loginPhone" placeholder="手机号" autocomplete="tel">
+      <div class="code-input-group">
+        <input type="text" class="login-input" id="loginCode" placeholder="验证码" style="flex:1;margin-bottom:0;" autocomplete="one-time-code">
+        <button onclick="sendCode()" id="sendCodeBtn">发送验证码</button>
+      </div>
+      <input type="password" class="login-input" id="loginPassword" placeholder="密码" autocomplete="current-password">
+      <button class="login-btn" onclick="handleLogin()" id="loginBtn">登录</button>
+      <div style="text-align:center;margin:15px 0;color:#999;font-size:12px;">— 其他登录方式 —</div>
+      <button class="login-btn" style="background:#07c160;" onclick="wechatLogin()">微信一键登录</button>
+      <div class="login-footer">
+        <span id="switchText">还没有账号？</span>
+        <a onclick="toggleLoginMode()" id="switchLink">立即注册</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 侧边栏遮罩 -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+  
+  <!-- 主界面 -->
+  <div class="app-container">
+    <!-- 移动端菜单按钮 -->
+    <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+    
+    <!-- 移动端登录按钮 -->
+    <button class="mobile-login-btn" id="mobileLoginBtn" onclick="showLogin()">登录</button>
+    
+    <!-- 侧边栏 -->
+    <div class="sidebar" id="sidebar">
+      <button class="close-sidebar" onclick="toggleSidebar()">&times;</button>
+      <div class="logo-area">
+        <img src="logo.jpg" alt="能虾助手" class="logo-img">
+        <span class="logo-text">能虾助手</span>
+      </div>
+      <button class="new-chat-btn" onclick="newChat()">
+        <span>+</span> 新建对话
+      </button>
+      <div class="history-section">
+        <div class="history-title">最近对话</div>
+        <div id="historyList"></div>
+      </div>
+      <div class="user-area" onclick="showUserMenu()">
+        <div class="user-avatar" id="userAvatar">未</div>
+        <div class="user-name" id="userName">点击登录</div>
+      </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="main-content">
+      <!-- 欢迎界面 -->
+      <div class="welcome-container" id="welcomeScreen">
+        <img src="logo.jpg" alt="能虾助手" class="welcome-logo">
+        <h1 class="welcome-title">你好，我是能虾助手</h1>
+        <p class="welcome-subtitle">让 AI 真正为你工作</p>
+        <div class="suggestion-grid" id="suggestions"></div>
+      </div>
+
+      <!-- 聊天界面 -->
+      <div class="chat-container hidden" id="chatScreen">
+        <div class="messages-container" id="messagesContainer"></div>
+        <div class="input-area">
+          <div class="input-wrapper">
+            <div class="toolbar" id="toolbar">
+              <button class="tool-btn" onclick="quickAction('search')">🔍 搜索</button>
+              <button class="tool-btn" onclick="quickAction('write')">✍️ 写作</button>
+              <button class="tool-btn" onclick="quickAction('analyze')">📊 分析</button>
+              <button class="tool-btn" onclick="quickAction('translate')">🌐 翻译</button>
+            </div>
+            <div class="input-box">
+              <textarea id="messageInput" placeholder="发消息..." rows="1" oninput="autoResize(this)" onkeypress="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage();}"></textarea>
+            </div>
+            <button class="send-btn" onclick="sendMessage()">
+              <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://8.129.98.129/api/v1';
+    let token = localStorage.getItem('lobster_token');
+    let user = null;
+    let isLoginMode = true;
+    let currentSessionId = null;
+    let codeSent = false;
+
+    const suggestions = [
+      { icon: '🔍', text: '搜索人工智能 2026 年最新进展' },
+      { icon: '📝', text: '帮我写一份周报' },
+      { icon: '📊', text: '分析这个 Excel 数据' },
+      { icon: '✉️', text: '写一封商务邮件' },
+      { icon: '📸', text: '识别图片中的文字' },
+      { icon: '📚', text: '制定 Python 学习计划' },
+      { icon: '🌐', text: '翻译这段英文' },
+      { icon: '💻', text: '帮我写一个 Python 脚本' }
+    ];
+
+    // 初始化
+    function init() {
+      // 加载建议
+      const container = document.getElementById('suggestions');
+      suggestions.forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'suggestion-card';
+        card.innerHTML = '<div class="suggestion-icon">'+s.icon+'</div><div class="suggestion-text">'+s.text+'</div>';
+        card.onclick = () => useSuggestion(s.text);
+        container.appendChild(card);
+      });
+
+      // 检查登录状态
+      if (token) loadUserInfo();
+      updateLoginButton();
+    }
+
+    // 更新登录按钮状态
+    function updateLoginButton() {
+      const btn = document.getElementById('mobileLoginBtn');
+      if (user) {
+        btn.textContent = '退出';
+        btn.onclick = logout;
+      } else {
+        btn.textContent = '登录';
+        btn.onclick = showLogin;
+      }
+    }
+
+    // 自动调整输入框高度
+    function autoResize(textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
+    }
+
+    // 使用建议
+    function useSuggestion(text) {
+      if (!token) { showLogin(); return; }
+      document.getElementById('welcomeScreen').classList.add('hidden');
+      document.getElementById('chatScreen').classList.remove('hidden');
+      document.getElementById('messageInput').value = text;
+      sendMessage();
+    }
+
+    // 显示登录
+    function showLogin() {
+      if (user) {
+        if (confirm('确定要退出登录吗？')) {
+          localStorage.removeItem('lobster_token');
+          token = null;
+          user = null;
+          location.reload();
+        }
+        return;
+      }
+      document.getElementById('loginModal').classList.remove('hidden');
+    }
+
+    // 关闭登录
+    function closeLogin() {
+      document.getElementById('loginModal').classList.add('hidden');
+    }
+
+    // 切换登录模式
+    function toggleLoginMode() {
+      isLoginMode = !isLoginMode;
+      document.getElementById('loginTitle').textContent = isLoginMode ? '登录能虾助手' : '注册能虾助手';
+      document.getElementById('loginBtn').textContent = isLoginMode ? '登录' : '注册';
+      document.getElementById('switchText').textContent = isLoginMode ? '还没有账号？' : '已有账号？';
+      document.getElementById('switchLink').textContent = isLoginMode ? '立即注册' : '去登录';
+    }
+
+    // 微信登录
+    function wechatLogin() {
+      // 微信小程序登录流程
+      if (typeof wx !== 'undefined') {
+        // 在微信小程序中
+        wx.login({
+          success: async (res) => {
+            if (res.code) {
+              try {
+                const response = await fetch(API_BASE + '/auth/login/wechat', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ code: res.code })
+                });
+                const data = await response.json();
+                if (data.success) {
+                  token = data.data.token;
+                  localStorage.setItem('lobster_token', token);
+                  user = data.data;
+                  updateUserInfo(data.data);
+                  closeLogin();
+                  updateLoginButton();
+                  loadHistory();
+                  alert('微信登录成功！');
+                } else {
+                  alert(data.error || '登录失败');
+                }
+              } catch (e) {
+                alert('网络错误：' + e.message);
+              }
+            } else {
+              alert('微信登录失败：' + res.errMsg);
+            }
+          },
+          fail: (err) => {
+            alert('微信登录失败：' + err.errMsg);
+          }
+        });
+      } else {
+        // 在 H5 中，显示提示
+        alert('微信登录功能需要在微信小程序中使用\n\n请使用微信扫描二维码访问小程序');
+      }
+    }
+
+    // 发送验证码
+    async function sendCode() {
+      const phone = document.getElementById('loginPhone').value;
+      if (!/^1[3-9]\d{9}$/.test(phone)) { alert('请输入正确的手机号'); return; }
+      
+      const btn = document.getElementById('sendCodeBtn');
+      btn.disabled = true;
+      btn.textContent = '已发送';
+      
+      try {
+        const res = await fetch(API_BASE + '/auth/send-code', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, type: isLoginMode ? 'login' : 'register' })
+        });
+        const data = await res.json();
+        if (data.success) {
+          if (data.debugCode) {
+            alert('验证码：' + data.debugCode + '\n\n（开发环境显示，生产环境将通过短信发送）');
+          } else {
+            alert('验证码已发送，请注意查收\n\n提示：如未收到，请查看服务器日志或配置阿里云短信服务');
+          }
+        } else {
+          alert(data.error || '发送失败');
+          btn.disabled = false;
+          btn.textContent = '发送验证码';
+        }
+      } catch (e) {
+        alert('网络错误：' + e.message);
+        btn.disabled = false;
+        btn.textContent = '发送验证码';
+      }
+    }
+
+    // 处理登录
+    async function handleLogin() {
+      const phone = document.getElementById('loginPhone').value;
+      const code = document.getElementById('loginCode').value;
+      const password = document.getElementById('loginPassword').value;
+      
+      if (!phone || !code || !password) { alert('请填写完整信息'); return; }
+      
+      try {
+        const res = await fetch(API_BASE + (isLoginMode ? '/auth/login/phone' : '/auth/register/phone'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, password, code })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          token = data.data.token;
+          localStorage.setItem('lobster_token', token);
+          user = data.data;
+          updateUserInfo(data.data);
+          closeLogin();
+          updateLoginButton();
+          loadHistory();
+          alert(isLoginMode ? '登录成功！' : '注册成功！');
+        } else {
+          alert(data.error || '操作失败');
+        }
+      } catch (e) {
+        alert('网络错误');
+      }
+    }
+
+    // 加载用户信息
+    async function loadUserInfo() {
+      try {
+        const res = await fetch(API_BASE + '/auth/me', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          user = data.data;
+          updateUserInfo(data.data);
+          updateLoginButton();
+          loadHistory();
+        } else {
+          logout();
+        }
+      } catch (e) {
+        logout();
+      }
+    }
+
+    // 更新用户信息
+    function updateUserInfo(userData) {
+      const initial = (userData.nickname || userData.phone || '用户').charAt(0).toUpperCase();
+      document.getElementById('userAvatar').textContent = initial;
+      document.getElementById('userName').textContent = userData.nickname || userData.phone || '用户';
+    }
+
+    // 退出登录
+    function logout() {
+      localStorage.removeItem('lobster_token');
+      token = null;
+      user = null;
+      location.reload();
+    }
+
+    // 显示用户菜单
+    function showUserMenu() {
+      showLogin();
+    }
+
+    // 切换侧边栏
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('show');
+    }
+
+    // 新建对话
+    function newChat() {
+      if (!token) { showLogin(); return; }
+      currentSessionId = null;
+      document.getElementById('messagesContainer').innerHTML = '';
+      document.getElementById('welcomeScreen').classList.remove('hidden');
+      document.getElementById('chatScreen').classList.add('hidden');
+      document.getElementById('messageInput').value = '';
+      if (window.innerWidth <= 768) toggleSidebar();
+    }
+
+    // 发送消息
+    async function sendMessage() {
+      const input = document.getElementById('messageInput');
+      const message = input.value.trim();
+      
+      if (!message) return;
+      if (!token) { showLogin(); return; }
+      
+      // 切换到聊天界面
+      document.getElementById('welcomeScreen').classList.add('hidden');
+      document.getElementById('chatScreen').classList.remove('hidden');
+      
+      // 显示用户消息
+      appendMessage('user', message);
+      input.value = '';
+      input.style.height = 'auto';
+      
+      try {
+        const res = await fetch(API_BASE + '/chat/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify({ message, sessionId: currentSessionId })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          currentSessionId = data.data.sessionId;
+          appendMessage('assistant', data.data.response.content);
+          loadHistory();
+        } else {
+          alert(data.error || '发送失败');
+        }
+      } catch (e) {
+        alert('网络错误：' + e.message);
+      }
+    }
+
+    // 显示消息
+    function appendMessage(role, content) {
+      const container = document.getElementById('messagesContainer');
+      const wrapper = document.createElement('div');
+      wrapper.className = 'message-wrapper ' + role;
+      
+      const avatar = document.createElement('div');
+      avatar.className = 'message-avatar';
+      avatar.textContent = role === 'user' ? '我' : '🦞';
+      
+      const bubble = document.createElement('div');
+      bubble.className = 'message-bubble';
+      bubble.textContent = content;
+      
+      wrapper.appendChild(avatar);
+      wrapper.appendChild(bubble);
+      container.appendChild(wrapper);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // 加载历史
+    async function loadHistory() {
+      try {
+        const res = await fetch(API_BASE + '/chat/sessions', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        
+        const list = document.getElementById('historyList');
+        if (data.success && data.data.length > 0) {
+          list.innerHTML = data.data.slice(0, 20).map(item => 
+            '<div class="history-item">'+
+            (item.title || '新对话')+'</div>'
+          ).join('');
+        } else {
+          list.innerHTML = '<div style="color:#999;font-size:13px;padding:8px;">暂无对话</div>';
+        }
+      } catch (e) {
+        console.error('加载历史失败', e);
+      }
+    }
+
+    // 快捷操作
+    function quickAction(type) {
+      if (!token) { showLogin(); return; }
+      
+      const templates = {
+        'search': '帮我搜索：',
+        'write': '帮我写：',
+        'analyze': '帮我分析：',
+        'translate': '帮我翻译：'
+      };
+      
+      document.getElementById('welcomeScreen').classList.add('hidden');
+      document.getElementById('chatScreen').classList.remove('hidden');
+      document.getElementById('messageInput').value = templates[type];
+      autoResize(document.getElementById('messageInput'));
+      document.getElementById('messageInput').focus();
+    }
+
+    // 触摸滑动支持
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    document.addEventListener('touchstart', e => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+    
+    document.addEventListener('touchend', e => {
+      touchEndX = e.changedTouches[0].screenX;
+      handleSwipe();
+    }, { passive: true });
+    
+    function handleSwipe() {
+      if (window.innerWidth > 768) return;
+      
+      if (touchStartX - touchEndX > 50) {
+        // 左滑关闭
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar.classList.contains('open')) {
+          toggleSidebar();
+        }
+      }
+      if (touchEndX - touchStartX > 50) {
+        // 右滑打开
+        const sidebar = document.getElementById('sidebar');
+        if (!sidebar.classList.contains('open')) {
+          toggleSidebar();
+        }
+      }
+    }
+
+    // 启动
+    init();
+  </script>
+</body>
+</html>

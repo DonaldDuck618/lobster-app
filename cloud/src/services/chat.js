@@ -1,167 +1,134 @@
-/**
- * 聊天服务
- */
-
 const { v4: uuidv4 } = require('uuid');
 const logger = require('../utils/logger');
-
-// 模拟会话存储
-const sessions = new Map();
-const messages = new Map();
+const db = require('../models/database');
+const AgentLoop = require('./agent-loop');
 
 class ChatService {
-  /**
-   * 发送消息
-   */
   static async sendMessage({ userId, message, sessionId }) {
-    // 创建或获取会话
+    // 创建新会话或获取现有会话
     if (!sessionId) {
       sessionId = uuidv4();
-      sessions.set(sessionId, {
-        id: sessionId,
-        userId,
-        createdAt: new Date(),
-        lastActiveAt: new Date()
-      });
+      const title = message.substring(0, 50) + (message.length > 50 ? '...' : '');
+      await db.query(
+        'INSERT INTO sessions (id, user_id, title) VALUES (?, ?, ?)',
+        [sessionId, userId, title]
+      );
+      logger.info('创建新会话', { sessionId, userId, title });
+    } else {
+      await db.query('UPDATE sessions SET updated_at = NOW() WHERE id = ? AND user_id = ?', [sessionId, userId]);
     }
 
     // 保存用户消息
-    const userMessage = {
-      id: uuidv4(),
-      sessionId,
-      role: 'user',
-      content: message,
-      timestamp: new Date()
-    };
+    const messageId = uuidv4();
+    await db.query(
+      'INSERT INTO messages (id, session_id, role, content) VALUES (?, ?, ?, ?)',
+      [messageId, sessionId, 'user', message]
+    );
 
-    if (!messages.has(sessionId)) {
-      messages.set(sessionId, []);
-    }
-    messages.get(sessionId).push(userMessage);
-
-    // TODO: 调用大模型 API
-    // const response = await callLLM(message);
+    // 使用 Agent Loop 处理对话
+    const aiResponseId = uuidv4();
+    let aiResponse;
+    let toolUsage = null;
     
-    // 模拟 AI 响应
-    const aiResponse = {
-      id: uuidv4(),
+    try {
+      const agent = new AgentLoop();
+      const session = { id: sessionId, user_id: userId };
+      const result = await agent.run(message, session);
+      
+      aiResponse = result.content;
+      toolUsage = result.toolResults;
+      
+      logger.info('Agent Loop 回复成功', { 
+        sessionId, 
+        response_length: aiResponse.length,
+        tools_used: toolUsage ? toolUsage.length : 0 
+      });
+    } catch (error) {
+      logger.error('Agent Loop 失败', error);
+      aiResponse = '抱歉，处理您的请求时遇到了问题，请稍后重试。';
+    }
+    
+    await db.query(
+      'INSERT INTO messages (id, session_id, role, content) VALUES (?, ?, ?, ?)',
+      [aiResponseId, sessionId, 'assistant', aiResponse]
+    );
+
+    // 更新会话标题
+    await db.query(
+      'UPDATE sessions SET title = ? WHERE id = ? AND (title = \'新会话\' OR title IS NULL)',
+      [message.substring(0, 50) + (message.length > 50 ? '...' : ''), sessionId]
+    );
+
+    return {
       sessionId,
-      role: 'assistant',
-      content: `收到你的消息："${message}"\n\n我正在处理中，稍后给你详细回复。`,
-      timestamp: new Date()
-    };
-
-    messages.get(sessionId).push(aiResponse);
-
-    // 更新会话时间
-    const session = sessions.get(sessionId);
-    session.lastActiveAt = new Date();
-
-    logger.info('消息发送成功', { sessionId, userId });
-
-    return {
-      sessionId,
-      message: userMessage,
-      response: aiResponse
+      message: { id: messageId, sessionId, role: 'user', content: message, timestamp: new Date() },
+      response: { id: aiResponseId, sessionId, role: 'assistant', content: aiResponse, timestamp: new Date() }
     };
   }
 
-  /**
-   * 分析 Excel
-   */
-  static async analyzeExcel({ userId, fileId, requirements }) {
-    // TODO: 调用 Excel 分析工具
-    // const result = await ExcelTool.analyze(fileId, requirements);
-
-    // 模拟响应
-    return {
-      fileId,
-      summary: {
-        rows: 1234,
-        columns: 15,
-        totalSales: 5678900,
-        growth: '+23.5%'
-      },
-      insights: [
-        '3 月销售额环比增长 45%',
-        '华东大区贡献 40% 销售额',
-        'SKU-A001 为爆款，占比 15%'
-      ],
-      suggestions: [
-        '加大华东区投入，保持增长势头',
-        '关注异常订单，排查刷单风险',
-        'SKU-A001 备货充足，避免断货'
-      ]
-    };
-  }
-
-  /**
-   * 生成报告
-   */
-  static async generateReport({ userId, type, content }) {
-    // TODO: 调用报告生成工具
-    // const report = await ReportTool.generate(type, content);
-
-    const templates = {
-      weekly: '周报模板',
-      daily: '日报模板',
-      monthly: '月报模板'
-    };
-
-    return {
-      type,
-      template: templates[type],
-      content: content || '请提供本周工作要点...',
-      generatedAt: new Date()
-    };
-  }
-
-  /**
-   * 获取会话列表
-   */
   static async getSessions(userId) {
-    const userSessions = Array.from(sessions.values())
-      .filter(s => s.userId === userId)
-      .sort((a, b) => b.lastActiveAt - a.lastActiveAt);
-
-    return userSessions.map(session => ({
-      id: session.id,
-      createdAt: session.createdAt,
-      lastActiveAt: session.lastActiveAt,
-      messageCount: messages.get(session.id)?.length || 0
+    const rows = await db.query(
+      'SELECT id, title, created_at, updated_at FROM sessions WHERE user_id = ? ORDER BY updated_at DESC LIMIT 50',
+      [userId]
+    );
+    return rows.map(row => ({
+      id: row.id,
+      title: row.title || '新对话',
+      createdAt: row.created_at,
+      lastActiveAt: row.updated_at
     }));
   }
 
-  /**
-   * 删除会话
-   */
+  static async getSessionMessages(sessionId, userId) {
+    const sessions = await db.query('SELECT id FROM sessions WHERE id = ? AND user_id = ?', [sessionId, userId]);
+    if (!sessions || sessions.length === 0) {
+      throw Object.assign(new Error('会话不存在或无权访问'), { status: 404 });
+    }
+
+    const messages = await db.query(
+      'SELECT id, session_id, role, content, created_at as timestamp FROM messages WHERE session_id = ? ORDER BY created_at ASC',
+      [sessionId]
+    );
+
+    return messages.map(msg => ({
+      id: msg.id,
+      sessionId: msg.session_id,
+      role: msg.role,
+      content: msg.content,
+      timestamp: msg.timestamp
+    }));
+  }
+
   static async deleteSession(userId, sessionId) {
-    const session = sessions.get(sessionId);
-    
-    if (!session) {
-      const error = new Error('会话不存在');
-      error.status = 404;
-      throw error;
+    const sessions = await db.query('SELECT id FROM sessions WHERE id = ? AND user_id = ?', [sessionId, userId]);
+    if (!sessions || sessions.length === 0) {
+      throw Object.assign(new Error('会话不存在'), { status: 404 });
     }
 
-    if (session.userId !== userId) {
-      const error = new Error('无权删除此会话');
-      error.status = 403;
-      throw error;
-    }
-
-    sessions.delete(sessionId);
-    messages.delete(sessionId);
+    await db.query('DELETE FROM messages WHERE session_id = ?', [sessionId]);
+    await db.query('DELETE FROM sessions WHERE id = ?', [sessionId]);
 
     logger.info('会话已删除', { sessionId, userId });
   }
+}
 
-  /**
-   * 获取会话消息
-   */
-  static async getMessages(sessionId) {
-    return messages.get(sessionId) || [];
+// 智能模拟回复（临时使用）
+function generateSmartResponse(message) {
+  const responses = {
+    '你好': '你好！我是能虾助手，很高兴为您服务。有什么我可以帮助您的吗？',
+    '介绍': '我是能虾助手，一个专业、友好、高效的 AI 助手。我擅长帮助用户解答问题、写作、分析、编程等。请问有什么我可以帮您的吗？',
+    '你是谁': '我是能虾助手🦞，由龙虾助手团队开发的 AI 智能助手。我可以帮您完成各种任务，比如写作、分析、搜索、编程等。',
+    '默认': '感谢您的消息！我正在学习中，目前还在测试阶段。如需更智能的回复，请配置有效的阿里云百炼 API Key。当前我可以帮您：1. 网络搜索 2. 文件处理 3. 数据分析 4. 基础对话。请问有什么可以帮您的？'
+  };
+  
+  // 简单匹配
+  for (const [key, value] of Object.entries(responses)) {
+    if (message.includes(key)) {
+      return value;
+    }
   }
+  
+  return responses['默认'];
 }
 
 module.exports = ChatService;
