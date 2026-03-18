@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>能虾助手 - 微信登录</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .container { background: white; border-radius: 20px; padding: 40px; max-width: 400px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+    .logo { width: 80px; height: 80px; border-radius: 16px; margin: 0 auto 20px; display: block; }
+    .title { font-size: 24px; font-weight: 600; text-align: center; margin-bottom: 8px; color: #1a1a1a; }
+    .subtitle { text-align: center; color: #666; margin-bottom: 30px; }
+    .wechat-btn { width: 100%; background: #07c160; color: white; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; }
+    .wechat-btn:active { transform: scale(0.98); }
+    .divider { text-align: center; margin: 20px 0; color: #999; font-size: 14px; }
+    .phone-btn { width: 100%; background: #f5f5f5; color: #333; border: none; padding: 16px; border-radius: 12px; font-size: 16px; cursor: pointer; }
+    .loading { text-align: center; padding: 40px; color: #999; }
+    .success { text-align: center; padding: 40px; }
+    .success-icon { font-size: 60px; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="loginContent">
+      <img src="logo.jpg" alt="能虾助手" class="logo">
+      <h1 class="title">能虾助手</h1>
+      <p class="subtitle">让 AI 真正为你工作</p>
+      
+      <button class="wechat-btn" onclick="wechatLogin()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M8.5 11.5c0 .8-.7 1.5-1.5 1.5s-1.5-.7-1.5-1.5S6.2 10 7 10s1.5.7 1.5 1.5zm4 0c0 .8-.7 1.5-1.5 1.5s-1.5-.7-1.5-1.5.7-1.5 1.5-1.5 1.5.7 1.5 1.5zm-7-4c.8 0 1.5.7 1.5 1.5s-.7 1.5-1.5 1.5S4 9.8 4 9s.7-1.5 1.5-1.5zm7 0c.8 0 1.5.7 1.5 1.5s-.7 1.5-1.5 1.5S13 9.8 13 9s.7-1.5 1.5-1.5zM12 2C6.5 2 2 5.8 2 10.5c0 2.6 1.4 4.9 3.6 6.4-.1.6-.4 1.5-.8 2.1-.2.3.1.7.5.5 1.7-.9 3-1.8 3.9-2.6.9.2 1.8.3 2.8.3 5.5 0 10-3.8 10-8.5S17.5 2 12 2z"/></svg>
+        微信一键登录
+      </button>
+      
+      <div class="divider">— 或使用其他方式 —</div>
+      
+      <button class="phone-btn" onclick="phoneLogin()">手机号登录</button>
+    </div>
+    
+    <div id="loadingContent" style="display:none;">
+      <div class="loading">
+        <div style="font-size: 40px; margin-bottom: 20px;">⏳</div>
+        <p>登录中...</p>
+      </div>
+    </div>
+    
+    <div id="successContent" style="display:none;">
+      <div class="success">
+        <div class="success-icon">✅</div>
+        <h2>登录成功</h2>
+        <p style="color: #666; margin-top: 10px;">即将跳转...</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://8.129.98.129/api/v1';
+    const APP_ID = 'wxab7518b38e3904bb';
+
+    // 检测是否在微信内
+    function isWechat() {
+      return /micromessenger/i.test(navigator.userAgent);
+    }
+
+    // 微信登录
+    function wechatLogin() {
+      if (!isWechat()) {
+        alert('请在微信内打开此页面');
+        return;
+      }
+      
+      document.getElementById('loginContent').style.display = 'none';
+      document.getElementById('loadingContent').style.display = 'block';
+      
+      // 获取授权 URL
+      const redirectUri = encodeURIComponent(window.location.href.split('?')[0]);
+      const authUrl = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=' + APP_ID + 
+        '&redirect_uri=' + redirectUri + 
+        '&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect';
+      
+      // 跳转到微信授权页面
+      window.location.href = authUrl;
+    }
+
+    // 手机号登录
+    function phoneLogin() {
+      alert('请使用测试账号登录：\n手机号：17724620007\n密码：Wujian886+');
+    }
+
+    // 处理微信回调
+    function handleCallback() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+      const state = urlParams.get('state');
+      
+      if (code) {
+        // 隐藏登录界面
+        document.getElementById('loginContent').style.display = 'none';
+        document.getElementById('loadingContent').style.display = 'block';
+        
+        // 用 code 换取 token
+        fetch(API_BASE + '/auth/login/wechat-web', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: code })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // 保存 token
+            localStorage.setItem('lobster_token', data.data.token);
+            
+            // 显示成功
+            document.getElementById('loadingContent').style.display = 'none';
+            document.getElementById('successContent').style.display = 'block';
+            
+            // 跳转首页
+            setTimeout(() => {
+              window.location.href = '/';
+            }, 1500);
+          } else {
+            alert('登录失败：' + (data.error || '未知错误'));
+            document.getElementById('loginContent').style.display = 'block';
+            document.getElementById('loadingContent').style.display = 'none';
+          }
+        })
+        .catch(error => {
+          alert('网络错误：' + error.message);
+          document.getElementById('loginContent').style.display = 'block';
+          document.getElementById('loadingContent').style.display = 'none';
+        });
+      }
+    }
+
+    // 页面加载时检查回调
+    window.onload = function() {
+      if (isWechat()) {
+        handleCallback();
+      }
+    };
+  </script>
+</body>
+</html>
