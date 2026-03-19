@@ -1,9 +1,16 @@
+/**
+ * 聊天服务 - 集成技能系统
+ */
+
 const { v4: uuidv4 } = require('uuid');
 const logger = require('../utils/logger');
 const db = require('../models/database');
-const AgentLoop = require('./agent-loop');
+const { skillSystem } = require('./skill-system');
 
 class ChatService {
+  /**
+   * 发送消息 - 支持技能调用
+   */
   static async sendMessage({ userId, message, sessionId }) {
     // 创建新会话或获取现有会话
     if (!sessionId) {
@@ -25,29 +32,28 @@ class ChatService {
       [messageId, sessionId, 'user', message]
     );
 
-    // 使用 Agent Loop 处理对话
-    const aiResponseId = uuidv4();
+    // 检查是否是技能调用
+    const skillMatch = message.match(/^\/(\S+)\s*(.*)/);
     let aiResponse;
-    let toolUsage = null;
     
-    try {
-      const agent = new AgentLoop();
-      const session = { id: sessionId, user_id: userId };
-      const result = await agent.run(message, session);
+    if (skillMatch) {
+      // 技能调用
+      const skillName = skillMatch[1];
+      const params = this.parseParams(skillMatch[2]);
       
-      aiResponse = result.content;
-      toolUsage = result.toolResults;
-      
-      logger.info('Agent Loop 回复成功', { 
-        sessionId, 
-        response_length: aiResponse.length,
-        tools_used: toolUsage ? toolUsage.length : 0 
-      });
-    } catch (error) {
-      logger.error('Agent Loop 失败', error);
-      aiResponse = '抱歉，处理您的请求时遇到了问题，请稍后重试。';
+      try {
+        const result = await skillSystem.executeSkill(skillName, params);
+        aiResponse = `✅ 技能执行成功:\n\n${JSON.stringify(result, null, 2)}`;
+      } catch (error) {
+        aiResponse = `❌ 技能执行失败:\n${error.message}`;
+      }
+    } else {
+      // 普通对话 - 调用 AI
+      aiResponse = await this.callAI(message, sessionId);
     }
     
+    // 保存 AI 响应
+    const aiResponseId = uuidv4();
     await db.query(
       'INSERT INTO messages (id, session_id, role, content) VALUES (?, ?, ?, ?)',
       [aiResponseId, sessionId, 'assistant', aiResponse]
@@ -66,6 +72,28 @@ class ChatService {
     };
   }
 
+  /**
+   * 解析参数
+   */
+  static parseParams(paramsStr) {
+    try {
+      return JSON.parse(paramsStr);
+    } catch {
+      return { query: paramsStr };
+    }
+  }
+
+  /**
+   * 调用 AI
+   */
+  static async callAI(message, sessionId) {
+    // TODO: 调用阿里云百炼 API
+    return `收到你的消息："${message}"\n\n我正在处理中，稍后给你详细回复。`;
+  }
+
+  /**
+   * 获取会话列表
+   */
   static async getSessions(userId) {
     const rows = await db.query(
       'SELECT id, title, created_at, updated_at FROM sessions WHERE user_id = ? ORDER BY updated_at DESC LIMIT 50',
@@ -79,6 +107,9 @@ class ChatService {
     }));
   }
 
+  /**
+   * 获取会话消息
+   */
   static async getSessionMessages(sessionId, userId) {
     const sessions = await db.query('SELECT id FROM sessions WHERE id = ? AND user_id = ?', [sessionId, userId]);
     if (!sessions || sessions.length === 0) {
@@ -99,6 +130,9 @@ class ChatService {
     }));
   }
 
+  /**
+   * 删除会话
+   */
   static async deleteSession(userId, sessionId) {
     const sessions = await db.query('SELECT id FROM sessions WHERE id = ? AND user_id = ?', [sessionId, userId]);
     if (!sessions || sessions.length === 0) {
@@ -110,25 +144,6 @@ class ChatService {
 
     logger.info('会话已删除', { sessionId, userId });
   }
-}
-
-// 智能模拟回复（临时使用）
-function generateSmartResponse(message) {
-  const responses = {
-    '你好': '你好！我是能虾助手，很高兴为您服务。有什么我可以帮助您的吗？',
-    '介绍': '我是能虾助手，一个专业、友好、高效的 AI 助手。我擅长帮助用户解答问题、写作、分析、编程等。请问有什么我可以帮您的吗？',
-    '你是谁': '我是能虾助手🦞，由龙虾助手团队开发的 AI 智能助手。我可以帮您完成各种任务，比如写作、分析、搜索、编程等。',
-    '默认': '感谢您的消息！我正在学习中，目前还在测试阶段。如需更智能的回复，请配置有效的阿里云百炼 API Key。当前我可以帮您：1. 网络搜索 2. 文件处理 3. 数据分析 4. 基础对话。请问有什么可以帮您的？'
-  };
-  
-  // 简单匹配
-  for (const [key, value] of Object.entries(responses)) {
-    if (message.includes(key)) {
-      return value;
-    }
-  }
-  
-  return responses['默认'];
 }
 
 module.exports = ChatService;

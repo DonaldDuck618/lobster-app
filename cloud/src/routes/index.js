@@ -62,3 +62,7 @@ router.get('/', (req, res) => {
     docs: 'https://github.com/DonaldDuck618/lobster-app'
   });
 });
+
+// 技能系统路由
+const skillsRoutes = require('./skills');
+router.use('/skills', skillsRoutes);
