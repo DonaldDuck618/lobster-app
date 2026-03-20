@@ -111,3 +111,14 @@ process.on('SIGINT', () => {
 });
 
 module.exports = app;
+
+// 初始化技能系统
+(async () => {
+  try {
+    const { skillSystem } = require('./services/skill-system');
+    await skillSystem.initialize();
+    logger.info('✅ 技能系统初始化完成');
+  } catch (error) {
+    logger.error('❌ 技能系统初始化失败', error);
+  }
+})();
