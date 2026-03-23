@@ -1,5 +1,5 @@
 /**
- * Agent Loop - 能虾助手核心智能引擎
+ * Agent Loop - 赚好多能虾助手核心智能引擎
  * 
  * 借鉴 OpenClaw pi-mono Agent Loop 设计
  * 实现：思考 → 工具调用 → 执行 → 回复 的完整流程
@@ -131,7 +131,7 @@ class AgentLoop {
    * 构建系统提示
    */
   buildSystemPrompt(context) {
-    return `你是能虾助手🦞，一个专业、友好、高效的 AI 助手。
+    return `你是赚好多能虾助手🦞，一个专业、友好、高效的 AI 助手。
 
 ## 你的能力
 - 解答各种问题

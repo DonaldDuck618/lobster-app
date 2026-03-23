@@ -17,7 +17,7 @@ const MODELS = {
     baseUrl: 'https://dashscope.aliyuncs.com/api/v1',
     temperature: 0.7,
     maxTokens: 2000,
-    context: '你是能虾助手 AI 助手。用中文简洁回答。'
+    context: '你是赚好多能虾助手 AI 助手。用中文简洁回答。'
   },
   
   // 通义千问（备用）
@@ -27,7 +27,7 @@ const MODELS = {
     apiKey: process.env.DASHSCOPE_API_KEY,
     temperature: 0.7,
     maxTokens: 2000,
-    context: '你是能虾助手 AI 助手。用中文简洁回答。'
+    context: '你是赚好多能虾助手 AI 助手。用中文简洁回答。'
   },
   
   // 智谱 GLM
@@ -37,7 +37,7 @@ const MODELS = {
     apiKey: process.env.ZHIPU_API_KEY,
     temperature: 0.7,
     maxTokens: 2000,
-    context: '你是能虾助手 AI 助手。用中文简洁回答。'
+    context: '你是赚好多能虾助手 AI 助手。用中文简洁回答。'
   },
   
   // MiniMax（便宜，适合对话）
@@ -47,7 +47,7 @@ const MODELS = {
     apiKey: process.env.MINIMAX_API_KEY,
     temperature: 0.7,
     maxTokens: 2000,
-    context: '你是能虾助手 AI 助手。用中文简洁回答。'
+    context: '你是赚好多能虾助手 AI 助手。用中文简洁回答。'
   },
   
   // Kimi（长文本）
@@ -57,7 +57,7 @@ const MODELS = {
     apiKey: process.env.MOONSHOT_API_KEY,
     temperature: 0.7,
     maxTokens: 2000,
-    context: '你是能虾助手 AI 助手。用中文简洁回答。'
+    context: '你是赚好多能虾助手 AI 助手。用中文简洁回答。'
   }
 };
 

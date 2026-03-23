@@ -1,4 +1,4 @@
-# 🦞 能虾助手 - iOS & Android APP 打包指南
+# 🦞 赚好多能虾助手 - iOS & Android APP 打包指南
 
 ---
 
@@ -41,7 +41,7 @@
 ```
 1. 双击打开 manifest.json
 2. 基础配置：
-   - 应用名称：能虾助手
+   - 应用名称：赚好多能虾助手
    - 应用 Logo：上传 icon.png
    - 版本号：1.0.0 (100)
 3. App 图标配置：
@@ -176,7 +176,7 @@ dist/build/ios/
 
 ```json
 {
-  "name": "能虾助手",
+  "name": "赚好多能虾助手",
   "appid": "__UNI__LOBSTER",
   "versionName": "1.0.0",
   "versionCode": "100",
@@ -264,7 +264,7 @@ dist/build/ios/
 1. 我的 App -> 创建 App
 2. 选择平台：iOS
 3. 填写信息：
-   - 名称：能虾助手
+   - 名称：赚好多能虾助手
    - Bundle ID：com.lobster.agent
    - SKU：LOBSTER001
 ```

@@ -2,7 +2,7 @@
  * Gateway 适配器
  * 
  * 包装 OpenClaw Gateway 功能
- * 提供能虾助手兼容接口
+ * 提供赚好多能虾助手兼容接口
  */
 
 const WebSocket = require('ws');

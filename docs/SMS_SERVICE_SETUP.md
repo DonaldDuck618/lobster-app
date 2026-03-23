@@ -89,7 +89,7 @@
 2. 左侧菜单：签名管理
 3. 点击"添加签名"
 4. 填写信息：
-   - 签名名称：能虾助手
+   - 签名名称：赚好多能虾助手
    - 签名类型：其他
    - 适用场景：验证码
    - 证明材料：上传营业执照或网站备案
@@ -99,7 +99,7 @@
 **审核时间:** 1-2 工作日
 
 **签名名称要求:**
-- ✅ 能虾助手
+- ✅ 赚好多能虾助手
 - ✅ 龙虾助手
 - ✅ 公司名称
 - ❌ 不能包含特殊符号
@@ -123,7 +123,7 @@
    - 变量说明：
      * code：验证码
      * minutes：有效期
-5. 选择签名：能虾助手
+5. 选择签名：赚好多能虾助手
 6. 提交审核
 ```
 
@@ -132,7 +132,7 @@
 **模板内容示例:**
 ```
 ✅ 推荐：您的验证码是${code}，5 分钟内有效，请勿泄露。
-✅ 推荐：【能虾助手】您的验证码是${code}，有效期${minutes}分钟。
+✅ 推荐：【赚好多能虾助手】您的验证码是${code}，有效期${minutes}分钟。
 ❌ 禁止：包含营销内容
 ❌ 禁止：包含链接
 ```
@@ -156,7 +156,7 @@ vi /opt/lobster-app/lobster-app/cloud/.env
 # 阿里云短信服务配置
 ALIYUN_SMS_ACCESS_KEY_ID=你的 AccessKeyID
 ALIYUN_SMS_ACCESS_KEY_SECRET=你的 AccessKeySecret
-ALIYUN_SMS_SIGN_NAME=能虾助手
+ALIYUN_SMS_SIGN_NAME=赚好多能虾助手
 ALIYUN_SMS_REGISTER_TEMPLATE=SMS_你的模板 ID
 ALIYUN_SMS_LOGIN_TEMPLATE=SMS_你的模板 ID
 ALIYUN_SMS_ENDPOINT=dysmsapi.aliyuncs.com
@@ -284,7 +284,7 @@ class SMSService {
       ? config.aliyun.sms.registerTemplate 
       : config.aliyun.sms.loginTemplate;
 
-    const signName = config.aliyun.sms.signName || '能虾助手';
+    const signName = config.aliyun.sms.signName || '赚好多能虾助手';
 
     const sendSmsRequest = new Dysmsapi20170525.SendSmsRequest({
       phoneNumbers: phone,
@@ -351,7 +351,7 @@ module.exports = {
     sms: {
       accessKeyId: process.env.ALIYUN_SMS_ACCESS_KEY_ID,
       accessKeySecret: process.env.ALIYUN_SMS_ACCESS_KEY_SECRET,
-      signName: process.env.ALIYUN_SMS_SIGN_NAME || '能虾助手',
+      signName: process.env.ALIYUN_SMS_SIGN_NAME || '赚好多能虾助手',
       registerTemplate: process.env.ALIYUN_SMS_REGISTER_TEMPLATE,
       loginTemplate: process.env.ALIYUN_SMS_LOGIN_TEMPLATE,
       endpoint: process.env.ALIYUN_SMS_ENDPOINT || 'dysmsapi.aliyuncs.com'
@@ -420,7 +420,7 @@ tail -f /opt/lobster-app/lobster-app/cloud/logs/app.log | grep 短信
 
 ### 使用估算
 
-**能虾助手场景:**
+**赚好多能虾助手场景:**
 - 用户注册：1 条/用户
 - 用户登录：1 条/次（可选）
 - 找回密码：1 条/次

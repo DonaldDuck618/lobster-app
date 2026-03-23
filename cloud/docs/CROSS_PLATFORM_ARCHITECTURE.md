@@ -1,4 +1,4 @@
-# 🦞 能虾助手 - 跨平台架构设计
+# 🦞 赚好多能虾助手 - 跨平台架构设计
 
 **支持平台**: 微信小程序、iOS、Android、Web、macOS、Windows、Linux
 
@@ -283,7 +283,7 @@ interface WSMessage {
   "type": "chat",
   "version": "1.0",
   "payload": {
-    "message": "你好，我是能虾助手",
+    "message": "你好，我是赚好多能虾助手",
     "role": "assistant"
   },
   "timestamp": 1710234567
@@ -521,6 +521,6 @@ try {
 
 ---
 
-🦞 能虾助手出品 | 让 AI 真正为你工作！
+🦞 赚好多能虾助手出品 | 让 AI 真正为你工作！
 
 *最后更新：2026-03-12*

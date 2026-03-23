@@ -74,7 +74,7 @@ WechatService.miniProgramLogin(code)
 sequenceDiagram
     participant User as 用户
     participant MiniApp as 小程序
-    participant Server as 能虾助手
+    participant Server as 赚好多能虾助手
     participant Wechat as 微信 API
 
     User->>MiniApp: 点击微信登录
@@ -256,7 +256,7 @@ curl -X POST http://8.129.98.129/api/v1/auth/login/wechat \
 
 ```
 ┌─────────────────────┐
-│   登录能虾助手       │
+│   登录赚好多能虾助手       │
 ├─────────────────────┤
 │ [手机号输入框]      │
 │ [验证码] [发送]     │

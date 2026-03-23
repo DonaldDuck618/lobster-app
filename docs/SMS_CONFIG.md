@@ -48,7 +48,7 @@
 
 1. 进入短信控制台
 2. 签名管理 → 添加签名
-3. 填写签名名称（如：能虾助手）
+3. 填写签名名称（如：赚好多能虾助手）
 4. 上传相关证明材料
 5. 等待审核（通常 1-2 工作日）
 
@@ -81,7 +81,7 @@ vi /opt/lobster-app/lobster-app/cloud/.env
 # 阿里云短信配置
 ALIYUN_SMS_ACCESS_KEY_ID=你的 AccessKeyID
 ALIYUN_SMS_ACCESS_KEY_SECRET=你的 AccessKeySecret
-ALIYUN_SMS_SIGN_NAME=能虾助手
+ALIYUN_SMS_SIGN_NAME=赚好多能虾助手
 ALIYUN_SMS_REGISTER_TEMPLATE=SMS_280756062
 ALIYUN_SMS_LOGIN_TEMPLATE=SMS_280756063
 ```

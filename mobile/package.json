@@ -1,7 +1,7 @@
 {
   "name": "lobster-app-mobile",
   "version": "1.0.0",
-  "description": "🦞 能虾助手 - 移动端 AI 助手 (iOS & Android)",
+  "description": "🦞 赚好多能虾助手 - 移动端 AI 助手 (iOS & Android)",
   "main": "main.js",
   "scripts": {
     "dev:app": "uni -p app",

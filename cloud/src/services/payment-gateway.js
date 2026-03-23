@@ -50,7 +50,7 @@ class PaymentGatewayService {
 
     // 调用微信支付 API
     // const result = await wechatPay.unifiedOrder({
-    //   body: `能虾助手 - ${order.planName}`,
+    //   body: `赚好多能虾助手 - ${order.planName}`,
     //   out_trade_no: orderId,
     //   total_fee: Math.round(order.amount * 100), // 单位：分
     //   spbill_create_ip: req.ip,
@@ -84,7 +84,7 @@ class PaymentGatewayService {
 
     // 调用支付宝 API
     // const result = await alipaySdk.exec('alipay.trade.wap.pay', {
-    //   subject: `能虾助手 - ${order.planName}`,
+    //   subject: `赚好多能虾助手 - ${order.planName}`,
     //   out_trade_no: orderId,
     //   total_amount: order.amount.toFixed(2),
     //   product_code: 'QUICK_WAP_WAY',

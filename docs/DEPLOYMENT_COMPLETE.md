@@ -195,7 +195,7 @@ pkill -f "node test-openclaw"
 {
   "type": "agent",
   "payload": {
-    "content": "你好！我是能虾助手...",
+    "content": "你好！我是赚好多能虾助手...",
     "status": "completed"
   }
 }

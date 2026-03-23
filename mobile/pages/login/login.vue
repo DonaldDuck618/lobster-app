@@ -3,7 +3,7 @@
     <!-- Logo 区域 -->
     <view class="logo-section">
       <view class="logo">🦞</view>
-      <text class="app-name">能虾助手</text>
+      <text class="app-name">赚好多能虾助手</text>
       <text class="app-slogan">你的 AI 智能助手</text>
     </view>
 

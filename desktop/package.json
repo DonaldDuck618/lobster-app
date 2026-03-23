@@ -1,7 +1,7 @@
 {
   "name": "lobster-desktop",
   "version": "1.0.0",
-  "description": "🦞 能虾助手 - 桌面版 (macOS/Windows/Linux)",
+  "description": "🦞 赚好多能虾助手 - 桌面版 (macOS/Windows/Linux)",
   "main": "src/main/index.js",
   "scripts": {
     "dev": "electron .",
@@ -31,7 +31,7 @@
   },
   "build": {
     "appId": "com.lobster-app.desktop",
-    "productName": "能虾助手",
+    "productName": "赚好多能虾助手",
     "directories": {
       "output": "dist"
     },

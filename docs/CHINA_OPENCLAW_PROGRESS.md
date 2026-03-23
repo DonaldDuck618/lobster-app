@@ -77,7 +77,7 @@ lobster-app/src/
 
 ### 技能移植
 
-| 技能 | OpenClaw | 能虾助手 | 状态 |
+| 技能 | OpenClaw | 赚好多能虾助手 | 状态 |
 |------|----------|---------|------|
 | web-search | ✅ | ✅ | 已移植 |
 | browser | ✅ | ❌ | 待移植 |
@@ -166,20 +166,20 @@ adapter.initialize().then(() => {
 ## 📝 技术难点
 
 ### 1. WebSocket 兼容
-**问题:** OpenClaw 使用 ws 库，能虾助手使用自定义 WebSocket
+**问题:** OpenClaw 使用 ws 库，赚好多能虾助手使用自定义 WebSocket
 
 **解决方案:**
 ```javascript
 // 创建 WebSocket 适配层
 class WebSocketAdapter {
   constructor() {
-    // 兼容 OpenClaw 和能虾助手
+    // 兼容 OpenClaw 和赚好多能虾助手
   }
 }
 ```
 
 ### 2. 数据库兼容
-**问题:** OpenClaw 使用自定义存储，能虾助手使用 MySQL
+**问题:** OpenClaw 使用自定义存储，赚好多能虾助手使用 MySQL
 
 **解决方案:**
 ```javascript
@@ -192,7 +192,7 @@ class DatabaseAdapter {
 ```
 
 ### 3. 配置兼容
-**问题:** OpenClaw 使用 JSON 配置，能虾助手使用环境变量
+**问题:** OpenClaw 使用 JSON 配置，赚好多能虾助手使用环境变量
 
 **解决方案:**
 ```javascript
@@ -220,7 +220,7 @@ const config = {
 - 📈 CPU 占用 < 50%
 
 ### 用户体验
-- 🎨 统一能虾助手 UI
+- 🎨 统一赚好多能虾助手 UI
 - 📱 移动端完美适配
 - 💬 中文友好提示
 - 🔧 配置简单

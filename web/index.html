@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>能虾助手 - 你的 AI 智能助手</title>
+  <title>赚好多能虾助手 - 你的 AI 智能助手</title>
   <link rel="icon" type="image/png" href="/static/logos/logo-3d-512.png">
   <style>
     :root {
@@ -425,7 +425,7 @@
   <!-- 登录界面 -->
   <div class="login-overlay" id="loginOverlay">
     <div class="login-box">
-      <h2>🦞 欢迎使用能虾助手</h2>
+      <h2>🦞 欢迎使用赚好多能虾助手</h2>
       <input type="text" class="login-input" id="loginUsername" placeholder="用户名">
       <input type="password" class="login-input" id="loginPassword" placeholder="密码">
       <button class="login-btn" onclick="handleLogin()">登录 / 注册</button>
@@ -439,8 +439,8 @@
     <!-- 头部 -->
     <div class="header">
       <div class="header-logo">
-        <img src="/static/logo.png" alt="能虾助手 Logo">
-        <h1>能虾助手</h1>
+        <img src="/static/logo.png" alt="赚好多能虾助手 Logo">
+        <h1>赚好多能虾助手</h1>
       </div>
       <div class="header-actions">
         <button class="header-btn" onclick="toggleSidebar()" title="历史记录">📋</button>
@@ -456,7 +456,7 @@
         <div class="avatar">🦞</div>
         <div class="message-content">
           <div class="message-bubble">
-            你好！我是能虾助手，可以帮你：
+            你好！我是赚好多能虾助手，可以帮你：
             <br>• 📊 分析 Excel 数据
             <br>• 📝 写周报/日报
             <br>• 🔍 搜索行业报告
@@ -630,7 +630,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `能虾助手 对话-${new Date().toLocaleDateString()}.txt`;
+      a.download = `赚好多能虾助手 对话-${new Date().toLocaleDateString()}.txt`;
       a.click();
       URL.revokeObjectURL(url);
     }
@@ -639,7 +639,7 @@
     function shareChat() {
       const content = messages.map(m => `${m.role === 'assistant' ? 'AI' : '我'}: ${m.content}`).join('\n');
       if (navigator.share) {
-        navigator.share({ title: '能虾助手 对话', text: content });
+        navigator.share({ title: '赚好多能虾助手 对话', text: content });
       } else {
         navigator.clipboard.writeText(content);
         alert('对话已复制到剪贴板！');

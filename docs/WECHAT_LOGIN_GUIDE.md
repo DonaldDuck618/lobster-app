@@ -18,7 +18,7 @@
 #### 第一步：打开小程序
 ```
 1. 打开微信
-2. 搜索"能虾助手"小程序
+2. 搜索"赚好多能虾助手"小程序
 3. 点击进入小程序
 ```
 
@@ -148,7 +148,7 @@ Page({
 <view class="login-container">
   <image class="logo" src="/images/logo.png" mode="aspectFit"/>
   
-  <text class="title">能虾助手</text>
+  <text class="title">赚好多能虾助手</text>
   <text class="subtitle">让 AI 真正为你工作</text>
   
   <button 
@@ -327,7 +327,7 @@ handleCallback();
 **步骤:**
 ```
 1. 打开微信
-2. 搜索"能虾助手"小程序
+2. 搜索"赚好多能虾助手"小程序
 3. 点击"微信一键登录"
 4. 完成登录
 ```

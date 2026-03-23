@@ -1,8 +1,8 @@
 /**
  * OpenClaw 适配器
  * 
- * 封装 OpenClaw 核心功能，提供能虾助手兼容接口
- * 打造中国版 OpenClaw - 能虾助手
+ * 封装 OpenClaw 核心功能，提供赚好多能虾助手兼容接口
+ * 打造中国版 OpenClaw - 赚好多能虾助手
  */
 
 const path = require('path');
@@ -63,9 +63,9 @@ class OpenClawAdapter {
       this.gateway = new GatewayModule.Gateway({
         port: 18789,
         bind: '127.0.0.1',
-        // 能虾助手配置
+        // 赚好多能虾助手配置
         lobsterConfig: {
-          brand: '能虾助手',
+          brand: '赚好多能虾助手',
           logo: '🦞',
           language: 'zh-CN'
         }
@@ -73,8 +73,8 @@ class OpenClawAdapter {
       
       logger.info('✅ Gateway 加载成功');
     } catch (error) {
-      logger.warn('Gateway 加载失败，使用能虾助手 Gateway', error);
-      // Fallback: 使用现有能虾助手 Gateway
+      logger.warn('Gateway 加载失败，使用赚好多能虾助手 Gateway', error);
+      // Fallback: 使用现有赚好多能虾助手 Gateway
       this.gateway = null;
     }
   }
@@ -90,16 +90,16 @@ class OpenClawAdapter {
       this.agent = new AgentModule.Agent({
         workspace: path.join(process.cwd(), 'workspace'),
         model: 'bailian/qwen3.5-plus',
-        // 能虾助手配置
+        // 赚好多能虾助手配置
         lobsterConfig: {
-          soul: '能虾助手人设',
+          soul: '赚好多能虾助手人设',
           identity: 'AI 项目经理'
         }
       });
       
       logger.info('✅ Agent Runtime 加载成功');
     } catch (error) {
-      logger.warn('Agent Runtime 加载失败，使用能虾助手 Agent Loop', error);
+      logger.warn('Agent Runtime 加载失败，使用赚好多能虾助手 Agent Loop', error);
       this.agent = null;
     }
   }
@@ -181,7 +181,7 @@ class OpenClawAdapter {
       'slack'
     ];
     
-    // 能虾助手中国本地化通道
+    // 赚好多能虾助手中国本地化通道
     const lobsterChannels = [
       'wechat-mini',      // 微信小程序
       'dingtalk',         // 钉钉
@@ -200,7 +200,7 @@ class OpenClawAdapter {
       }
     }
     
-    // 加载能虾助手通道
+    // 加载赚好多能虾助手通道
     for (const channelName of lobsterChannels) {
       try {
         const ChannelModule = require(path.join(__dirname, `channels/${channelName}.js`));
@@ -222,7 +222,7 @@ class OpenClawAdapter {
       // 使用 OpenClaw Agent
       return await this.agent.run(message, session);
     } else {
-      // Fallback: 使用能虾助手 Agent Loop
+      // Fallback: 使用赚好多能虾助手 Agent Loop
       const AgentLoop = require('../services/agent-loop');
       const agent = new AgentLoop();
       return await agent.run(message, session);
@@ -300,7 +300,7 @@ class OpenClawAdapter {
       skills: this.skills.size,
       channels: this.channels.size,
       version: '1.0.0',
-      brand: '能虾助手',
+      brand: '赚好多能虾助手',
       core: 'OpenClaw'
     };
   }

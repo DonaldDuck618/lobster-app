@@ -95,7 +95,7 @@ class PaymentService {
     // const result = await wechatPay.unifiedOrder({
     //   out_trade_no: orderId,
     //   total_fee: order.amount * 100, // 单位：分
-    //   body: `能虾助手 - ${order.planName}`,
+    //   body: `赚好多能虾助手 - ${order.planName}`,
     //   spbill_create_ip: req.ip,
     //   notify_url: 'https://api.lobster-app.com/api/v1/payment/wechat-notify'
     // });
@@ -138,7 +138,7 @@ class PaymentService {
     // const result = await alipaySdk.exec('alipay.trade.page.pay', {
     //   out_trade_no: orderId,
     //   total_amount: order.amount.toFixed(2),
-    //   subject: `能虾助手 - ${order.planName}`,
+    //   subject: `赚好多能虾助手 - ${order.planName}`,
     //   return_url: 'https://lobster-app.com/payment/success',
     //   notify_url: 'https://api.lobster-app.com/api/v1/payment/alipay-notify'
     // });

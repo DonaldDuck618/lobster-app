@@ -26,7 +26,7 @@ class BailianService {
       const messages = [
         {
           role: 'system',
-          content: '你是能虾助手，一个专业、友好、高效的 AI 助手。你擅长帮助用户解答问题、写作、分析、编程等。请用简洁、清晰、有条理的语言回复。'
+          content: '你是赚好多能虾助手，一个专业、友好、高效的 AI 助手。你擅长帮助用户解答问题、写作、分析、编程等。请用简洁、清晰、有条理的语言回复。'
         },
         ...history,
         { role: 'user', content: prompt }

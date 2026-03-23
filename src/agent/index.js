@@ -2,7 +2,7 @@
  * Agent Runtime 适配器
  * 
  * 包装 OpenClaw Agent 功能
- * 提供能虾助手兼容接口
+ * 提供赚好多能虾助手兼容接口
  */
 
 const { v4: uuidv4 } = require('uuid');
@@ -206,7 +206,7 @@ class AgentAdapter extends EventEmitter {
    * 调用 LLM
    */
   async callLLM(message, session) {
-    // 使用能虾助手 Agent Loop
+    // 使用赚好多能虾助手 Agent Loop
     const AgentLoop = require('../services/agent-loop');
     const agent = new AgentLoop();
     

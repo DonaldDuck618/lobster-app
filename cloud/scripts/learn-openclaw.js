@@ -85,12 +85,12 @@ class OpenClawLearner {
   async generateReport() {
     logger.info('生成学习报告...');
     const date = new Date().toISOString().split('T')[0];
-    let report = `# 🦞 能虾助手 - OpenClaw 学习报告\n\n**日期**: ${date}\n\n---\n\n## 📊 GitHub 概况\n\n`;
+    let report = `# 🦞 赚好多能虾助手 - OpenClaw 学习报告\n\n**日期**: ${date}\n\n---\n\n## 📊 GitHub 概况\n\n`;
     const gh = this.reports.find(r => r.source === 'GitHub');
     if (gh) {
       report += `- **Stars**: ${gh.repo.stars} ⭐\n- **Forks**: ${gh.repo.forks} 🍴\n\n### 最新 Releases\n${gh.releases.map(r => `- ${r.version}: ${r.name}`).join('\n')}\n\n### 最新 Commits\n${gh.commits.slice(0,5).map(c => `- \`${c.sha}\` ${c.message}`).join('\n')}\n\n`;
     }
-    report += `---\n\n## 🎯 新功能发现\n\n${this.newFeatures.length > 0 ? this.newFeatures.map((f,i) => `### ${i+1}. ${f.feature}\n\n**优先级**: ${f.priority}\n**行动**: ${f.action}\n`).join('\n') : '暂无'}\n\n---\n\n## 📋 总结\n\n**新功能**: ${this.newFeatures.length} 个\n\n*报告由能虾助手 自动生成*\n`;
+    report += `---\n\n## 🎯 新功能发现\n\n${this.newFeatures.length > 0 ? this.newFeatures.map((f,i) => `### ${i+1}. ${f.feature}\n\n**优先级**: ${f.priority}\n**行动**: ${f.action}\n`).join('\n') : '暂无'}\n\n---\n\n## 📋 总结\n\n**新功能**: ${this.newFeatures.length} 个\n\n*报告由赚好多能虾助手 自动生成*\n`;
     await fs.mkdir(CONFIG.output.dir, { recursive: true });
     const filePath = path.join(CONFIG.output.dir, `openclaw-learning-${date}.md`);
     await fs.writeFile(filePath, report, 'utf-8');

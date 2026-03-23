@@ -41,7 +41,7 @@ class WebSocketServer {
     // 发送欢迎消息
     this.send(ws, {
       type: 'welcome',
-      message: '欢迎使用能虾助手',
+      message: '欢迎使用赚好多能虾助手',
       clientId
     });
 

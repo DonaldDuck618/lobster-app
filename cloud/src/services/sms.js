@@ -150,7 +150,7 @@ class SMSService {
       // TODO: 安装 SDK 后启用
       // const sendSmsRequest = new Dysmsapi20170525.Models.SendSmsRequest({
       //   phoneNumbers: phone,
-      //   signName: '能虾助手',
+      //   signName: '赚好多能虾助手',
       //   templateCode: type === 'register' ? 'SMS_280756062' : 'SMS_280756063',
       //   templateParam: JSON.stringify({ code })
       // });
