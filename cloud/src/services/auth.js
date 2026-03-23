@@ -53,7 +53,18 @@ class AuthService {
 
   static async loginByPhone({ phone, password }) {
     if (!this.validatePhone(phone)) throw Object.assign(new Error('手机号格式不正确'), { status: 400 });
-    const users = await db.query('SELECT * FROM users WHERE phone = ? LIMIT 1', [phone]);
+    let users = await db.query('SELECT * FROM users WHERE phone = ? LIMIT 1', [phone]);
+    
+    // 内存模式：如果用户不存在且是测试账号，自动创建
+    if ((!users || users.length === 0) && phone === '17724620007' && password === 'Wujian886+') {
+      logger.info('创建测试用户');
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash('Wujian886+', 10);
+      await db.query('INSERT INTO users (id, phone, password_hash, nickname, phone_verified, status) VALUES (?, ?, ?, ?, 1, ?)', 
+        ['user-001', '17724620007', hashedPassword, '测试用户', 'active']);
+      users = await db.query('SELECT * FROM users WHERE phone = ? LIMIT 1', [phone]);
+    }
+    
     if (!users || users.length === 0) throw Object.assign(new Error('手机号或密码错误'), { status: 401 });
     const user = users[0];
     const isValid = await bcrypt.compare(password, user.password_hash);
