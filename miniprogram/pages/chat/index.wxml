@@ -1,0 +1,18 @@
+<view class="container">
+  <!-- 聊天区域 -->
+  <scroll-view class="chat-container" scroll-y="true" scroll-into-view="{{scrollToView}}">
+    <view class="message {{item.role}}" wx:for="{{messages}}" wx:key="id">
+      <view class="avatar">{{item.role === 'assistant' ? '🦞' : '👤'}}</view>
+      <view class="message-content">
+        <view class="message-bubble">{{item.content}}</view>
+        <view class="message-time">{{item.time}}</view>
+      </view>
+    </view>
+  </scroll-view>
+  
+  <!-- 输入区域 -->
+  <view class="input-container">
+    <input class="input" value="{{inputText}}" bindinput="onInput" placeholder="输入任务描述..." confirm-type="send" bindconfirm="sendMessage"/>
+    <button class="send-btn" bindtap="sendMessage">发送</button>
+  </view>
+</view>
