@@ -543,6 +543,94 @@ DELETE /api/v1/cron/:id
 
 ---
 
+### 7.4 Excel 分析增强 (v2.3) - 新增需求
+
+**需求背景:**
+当前 Excel 分析功能使用基础的 `xlsx` 库进行数据解析和统计，功能相对简单。为了提供更强大的数据分析能力，计划集成 **Danfo.js**（JavaScript 版的 Pandas）。
+
+**技术方案:**
+
+| 项目 | 详情 |
+|------|------|
+| **库名** | Danfo.js (danfojs-node) |
+| **GitHub** | https://github.com/opensource9ja/danfojs |
+| **Stars** | 6k+ |
+| **定位** | Python Pandas 的 JavaScript 实现 |
+| **安装** | `npm install danfojs-node` |
+
+**功能增强:**
+
+| 功能 | 当前状态 | 增强后 |
+|------|---------|--------|
+| 基础统计 | ✅ 平均/最大/最小 | ✅ + 中位数/标准差/分位数 |
+| 数据探索 | ❌ | ✅ 自动探索性数据分析 (EDA) |
+| 异常检测 | ❌ | ✅ 自动异常值检测 |
+| 相关性分析 | ❌ | ✅ 列间相关性计算 |
+| 数据分组 | ❌ | ✅ groupby 聚合分析 |
+| 趋势预测 | ❌ | ✅ 简单时间序列预测 |
+| 数据质量 | ❌ | ✅ 缺失值/重复值检测 |
+| 可视化建议 | ❌ | ✅ 智能图表推荐 |
+
+**实现示例:**
+
+```javascript
+const dfd = require("danfojs-node");
+
+// 读取 Excel
+const df = await dfd.readExcel("/path/to/file.xlsx");
+
+// 自动统计描述
+df.describe().print();
+
+// 分组分析
+df.groupby(["城市"]).col(["销售额"]).mean().print();
+
+// 相关性分析
+df.corr().print();
+
+// 异常检测
+const outliers = dfd.detectOutliers(df["销售额"]);
+
+// 数据质量报告
+const qualityReport = {
+  missing: df.isNa().sum(),
+  duplicates: df.duplicated().sum()
+};
+```
+
+**开发计划:**
+
+| 阶段 | 时间 | 任务 |
+|------|------|------|
+| Phase 1 | 2026-04-08 | 集成 Danfo.js 基础功能 |
+| Phase 2 | 2026-04-15 | 实现高级统计分析 |
+| Phase 3 | 2026-04-22 | 数据质量检查 |
+| Phase 4 | 2026-04-29 | 可视化建议生成 |
+
+**验收标准:**
+- [ ] 支持中位数、标准差、分位数统计
+- [ ] 支持数据分组聚合分析
+- [ ] 支持异常值检测
+- [ ] 支持相关性分析
+- [ ] 生成数据质量报告
+- [ ] 提供可视化建议
+- [ ] 性能无明显下降
+- [ ] 中文列名正常显示
+
+**风险评估:**
+- ⚠️ Danfo.js 依赖较多，包体积增加 (~5MB)
+- ⚠️ 大文件分析可能占用较多内存
+- ⚠️ 需要测试中文编码兼容性
+
+**备选方案:**
+- 方案 A: 保持当前 xlsx 方案，手动增强统计功能
+- 方案 B: 使用 Python 后端 + FastAPI 进行数据分析
+- 方案 C: 集成 Apache ECharts 进行可视化
+
+---
+
+---
+
 ### 7.3 时间规划
 
 | 阶段 | 时间 | 目标 |

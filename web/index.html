@@ -974,13 +974,28 @@
           return;
         }
         
+        // 构建消息体，如果有 Excel 数据，添加到上下文中
+        const requestBody = { message: message };
+        if (window.currentExcelData) {
+          // 检查 Excel 数据是否是最近的（10 分钟内）
+          const now = new Date();
+          const timeDiff = now - window.currentExcelData.uploadedAt;
+          if (timeDiff < 10 * 60 * 1000) { // 10 分钟内
+            requestBody.context = {
+              type: 'excel',
+              fileName: window.currentExcelData.fileName,
+              summary: generateExcelSummary(window.currentExcelData.analysis)
+            };
+          }
+        }
+        
         const response = await fetch(API_BASE_URL + '/api/v1/chat/send', {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ message })
+          body: JSON.stringify(requestBody)
         });
         hideTypingIndicator();
         
@@ -1032,6 +1047,35 @@
       return now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
     }
 
+    // 生成 Excel 数据摘要（用于传递给 AI）
+    function generateExcelSummary(analysis) {
+      if (!analysis || !analysis.overview) return '';
+      
+      let summary = `Excel 数据摘要:\n`;
+      summary += `- 总行数：${analysis.overview.totalRows}\n`;
+      summary += `- 总列数：${analysis.overview.totalColumns}\n`;
+      
+      if (analysis.numericColumns && analysis.numericColumns.length > 0) {
+        summary += `\n数值列:\n`;
+        analysis.numericColumns.forEach(col => {
+          summary += `- ${col.name}: 平均=${col.average?.toFixed(2)}, 最大=${col.max}, 最小=${col.min}\n`;
+        });
+      }
+      
+      if (analysis.categoricalColumns && analysis.categoricalColumns.length > 0) {
+        summary += `\n分类列:\n`;
+        analysis.categoricalColumns.forEach(col => {
+          summary += `- ${col.name}: ${col.uniqueCount} 个不同值\n`;
+          if (col.topValues && col.topValues.length > 0) {
+            const top = col.topValues[0];
+            summary += `  最常见：${top.value} (${top.count}次)\n`;
+          }
+        });
+      }
+      
+      return summary;
+    }
+
     // 图片处理
     function handleImageSelect(event) {
       const file = event.target.files[0];
@@ -1072,14 +1116,44 @@
 
         if (response.ok) {
           const result = await response.json();
-          const analysis = result.data?.analysis;
+          const data = result.data;
+          const analysis = data?.analysis;
           let content = `✅ **Excel 分析完成**\n\n📄 **文件信息**:\n`;
-          content += `- 文件名：${result.data?.fileName || file.name}\n`;
-          content += `- 工作表：${analysis?.sheets || 0} 个\n`;
-          content += `- 数据行：${analysis?.rowCount || 0} 行\n`;
-          content += `- 列数：${analysis?.columnCount || 0} 列\n\n`;
-          if (analysis?.summary) content += `📊 **摘要**:\n${analysis.summary}\n\n`;
-          content += `💡 **试试问我**:\n- "分析销售趋势"\n- "找出异常值"\n- "生成可视化建议"`;
+          content += `- 文件名：${data?.fileName || file.name}\n`;
+          content += `- 工作表：${data?.sheets || 0} 个\n`;
+          content += `- 数据行：${analysis?.overview?.totalRows || 0} 行\n`;
+          content += `- 列数：${analysis?.overview?.totalColumns || 0} 列\n\n`;
+          
+          if (analysis && analysis.overview) {
+            content += `📊 **数据概览**:\n`;
+            if (analysis.numericColumns && analysis.numericColumns.length > 0) {
+              content += `- 数值列：${analysis.numericColumns.length} 个\n`;
+              // 显示数值列名称
+              const numericNames = analysis.numericColumns.map(c => c.name).join('、');
+              if (numericNames) content += `  (${numericNames})\n`;
+            }
+            if (analysis.categoricalColumns && analysis.categoricalColumns.length > 0) {
+              content += `- 分类列：${analysis.categoricalColumns.length} 个\n`;
+              // 显示分类列名称
+              const catNames = analysis.categoricalColumns.map(c => c.name).join('、');
+              if (catNames) content += `  (${catNames})\n`;
+            }
+            content += '\n';
+          }
+          
+          content += `💡 **你可以这样问我**:\n`;
+          content += `- "分析${analysis?.numericColumns?.[0]?.name || '数据'}的趋势"\n`;
+          content += `- "找出异常值"\n`;
+          content += `- "哪个${analysis?.categoricalColumns?.[0]?.name || '类别'}最高？"\n`;
+          content += `- "生成数据总结"\n`;
+          
+          // 保存分析结果到上下文（临时存储，供后续对话使用）
+          window.currentExcelData = {
+            fileName: data?.fileName,
+            analysis: analysis,
+            uploadedAt: new Date()
+          };
+          
           messages.push({ role: 'assistant', content: content, time: getCurrentTime() });
         } else {
           const error = await response.json();
