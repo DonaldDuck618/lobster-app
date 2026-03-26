@@ -364,6 +364,41 @@
 
     .input:focus { border-color: #667eea; }
 
+    /* WebSearch 开关 */
+    .websearch-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: var(--bg-color);
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .websearch-toggle:hover {
+      background: rgba(102, 126, 234, 0.1);
+    }
+
+    .websearch-toggle.active {
+      background: rgba(102, 126, 234, 0.2);
+    }
+
+    .websearch-toggle .icon {
+      font-size: 18px;
+    }
+
+    .websearch-toggle .label {
+      font-size: 13px;
+      color: var(--text-color);
+      font-weight: 500;
+    }
+
+    .websearch-toggle.active .label {
+      color: #667eea;
+    }
+
     .send-btn {
       padding: 12px 25px;
       background: var(--primary-gradient);
@@ -603,6 +638,13 @@
       <button class="tool-btn" onclick="document.getElementById('imageInput').click()" title="上传图片">📸</button>
       <button class="tool-btn" onclick="document.getElementById('excelInput').click()" title="上传 Excel">📊</button>
       <button class="tool-btn" id="voiceBtn" onclick="toggleVoice()" title="语音输入">🎤</button>
+      
+      <!-- WebSearch 开关 -->
+      <div class="websearch-toggle" id="websearchToggle" onclick="toggleWebSearch()" title="开启后将使用 Tavily 搜索最新信息">
+        <span class="icon">🔍</span>
+        <span class="label">网络搜索</span>
+      </div>
+      
       <input type="text" class="input" id="messageInput" placeholder="输入任务描述..." onkeypress="handleKeyPress(event)">
       <button class="send-btn" id="sendBtn" onclick="sendMessage()">发送</button>
     </div>
@@ -652,6 +694,7 @@
     let mediaRecorder = null;
     let audioChunks = [];
     let messages = [];
+    let webSearchEnabled = false; // WebSearch 开关状态
 
     // 页面加载
     window.onload = () => {
@@ -664,7 +707,36 @@
       }
       loadTheme();
       loadCurrentModel();
+      loadWebSearchSetting(); // 加载 WebSearch 设置
     };
+
+    // WebSearch 开关切换
+    function toggleWebSearch() {
+      webSearchEnabled = !webSearchEnabled;
+      localStorage.setItem('lobster_websearch', webSearchEnabled);
+      updateWebSearchUI();
+    }
+
+    // 更新 WebSearch UI
+    function updateWebSearchUI() {
+      const toggle = document.getElementById('websearchToggle');
+      if (webSearchEnabled) {
+        toggle.classList.add('active');
+        toggle.querySelector('.icon').textContent = '🌐';
+        toggle.querySelector('.label').textContent = '搜索已开启';
+      } else {
+        toggle.classList.remove('active');
+        toggle.querySelector('.icon').textContent = '🔍';
+        toggle.querySelector('.label').textContent = '网络搜索';
+      }
+    }
+
+    // 加载 WebSearch 设置
+    function loadWebSearchSetting() {
+      const saved = localStorage.getItem('lobster_websearch');
+      webSearchEnabled = saved === 'true';
+      updateWebSearchUI();
+    }
 
     // 登录/注册
     async function handleLogin() {
@@ -975,13 +1047,19 @@
         }
         
         // 构建消息体，如果有 Excel 数据，添加到上下文中
-        const requestBody = { message: message };
+        const requestBody = { 
+          message: message,
+          context: {
+            enableSearch: webSearchEnabled // 传递 WebSearch 开关状态
+          }
+        };
         if (window.currentExcelData) {
           // 检查 Excel 数据是否是最近的（10 分钟内）
           const now = new Date();
           const timeDiff = now - window.currentExcelData.uploadedAt;
           if (timeDiff < 10 * 60 * 1000) { // 10 分钟内
             requestBody.context = {
+              ...requestBody.context,
               type: 'excel',
               fileName: window.currentExcelData.fileName,
               summary: generateExcelSummary(window.currentExcelData.analysis)
